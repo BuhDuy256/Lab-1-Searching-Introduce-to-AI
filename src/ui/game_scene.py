@@ -25,7 +25,7 @@ class GameScene:
 
     def create_buttons(self):
         #example button creation
-        Button(50, 50, 200, 50, "Start Game", pygame.font.Font(None, 36), action=self.print_actions, 
+        Button(50, 50, 200, 50, "Start Game", pygame.font.Font(None, 36), action=self.test_action, 
                         hover_color=(200, 200, 200), text_color=(0, 0, 0))
 
     def update(self):
@@ -37,5 +37,5 @@ class GameScene:
         for game_object in self.game_objects:
             game_object.render(screen)
 
-    def print_actions(self):
+    def test_action(self):
         print("Chó là bạn, không phải tôi")
