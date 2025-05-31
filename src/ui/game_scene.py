@@ -16,8 +16,8 @@ class GameScene:
         self.create_buttons()
 
 
-        self.game_objects.extend(GameManager().game_objects_queue)
-        GameManager().game_objects_queue.clear()
+        self.game_objects.extend(GameManager.game_objects_queue)
+        GameManager.game_objects_queue.clear()
 
         for game_object in self.game_objects:
             if isinstance(game_object, Button):

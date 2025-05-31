@@ -14,7 +14,7 @@ class Button(GameObject):
         self.action = action # Function to call when clicked
         self.is_hovered = False
 
-        GameManager().game_objects_queue.append(self)  # Add to the game objects queue
+        GameManager.game_objects_queue.append(self)  # Add to the game objects queue
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
