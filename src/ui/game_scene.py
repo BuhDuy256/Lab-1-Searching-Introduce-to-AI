@@ -4,6 +4,7 @@ from config import WHITE
 from src.ui.button import Button
 from src.game_manager import GameManager
 import pygame
+from src.player import Player  # Assuming Player is defined in src/player.py
 
 class GameScene:
     def __init__(self, screen):
@@ -14,6 +15,7 @@ class GameScene:
         self.buttons: list[Button] = []
 
         self.create_buttons()
+        self.create_player()
 
         self.game_objects.extend(GameManager.game_objects_queue)
         self.game_objects.sort(key=lambda obj: getattr(obj, 'layer', 0))
@@ -27,6 +29,10 @@ class GameScene:
         #example button creation
         Button(50, 50, 200, 50, "Start Game", pygame.font.Font(None, 36), action=self.test_action, 
                         hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        
+    def create_player(self):
+        player_sprite = pygame.image.load("assets\images\player.png").convert_alpha()
+        Player(100, 100, 50, 50, sprite = player_sprite)
 
     def update(self):
         for game_object in self.game_objects:

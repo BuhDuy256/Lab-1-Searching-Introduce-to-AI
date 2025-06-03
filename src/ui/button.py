@@ -4,7 +4,7 @@ from src.game_object import GameObject
 
 class Button(GameObject):
     def __init__(self, x, y, width, height, text, font, color=GRAY, hover_color=None, text_color=TEXT_COLOR, action=None):
-        super().__init__()
+        super().__init__(x, y, width ,height, sprite = None)
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.font = font
@@ -13,6 +13,8 @@ class Button(GameObject):
         self.text_color = text_color
         self.action = action # Function to call when clicked
         self.is_hovered = False
+        
+        self.layer = 5
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:

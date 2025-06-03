@@ -1,7 +1,9 @@
 from .game_manager import GameManager
+import pygame
 
 class GameObject:
-    def __init__(self):
+    # mấy cái sprite load sẵn trong file config.py hoặc rảnh thì tạo file riêng để load asset
+    def __init__(self, x, y, width, height, sprite = None):
         GameManager.add_game_object(self)
         self.layer = 0 
         # Determine the rendering order, smaller layers are rendered first
@@ -9,6 +11,14 @@ class GameObject:
 
         self.visible = True # Render if True, otherwise not
         self.active = True # Update if True, otherwise not
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.sprite = sprite
+        
+        if sprite is not None:
+            self.sprite = pygame.transform.scale(self.sprite, (self.width, self.height))
 
     def start(self):
         pass
@@ -20,4 +30,5 @@ class GameObject:
         pass
 
     def render(self, screen):
-        pass
+        if self.sprite:
+            screen.blit(self.sprite, (self.x, self.y))
