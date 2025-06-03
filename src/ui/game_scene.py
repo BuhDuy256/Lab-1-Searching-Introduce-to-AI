@@ -15,8 +15,8 @@ class GameScene:
 
         self.create_buttons()
 
-
         self.game_objects.extend(GameManager.game_objects_queue)
+        self.game_objects.sort(key=lambda obj: getattr(obj, 'layer', 0))
         GameManager.game_objects_queue.clear()
 
         for game_object in self.game_objects:
@@ -30,12 +30,14 @@ class GameScene:
 
     def update(self):
         for game_object in self.game_objects:
-            game_object.update()
+            if game_object.active:
+                game_object.update()
 
     def render(self, screen):
         self.screen.fill(WHITE)
         for game_object in self.game_objects:
-            game_object.render(screen)
+            if game_object.visible: 
+                game_object.render(screen)
 
     def test_action(self):
         print("Chó là bạn, không phải tôi")

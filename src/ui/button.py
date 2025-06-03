@@ -1,10 +1,10 @@
 import pygame
 from config import *
 from src.game_object import GameObject
-from src.game_manager import GameManager
 
 class Button(GameObject):
     def __init__(self, x, y, width, height, text, font, color=GRAY, hover_color=None, text_color=TEXT_COLOR, action=None):
+        super().__init__()
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.font = font
@@ -13,8 +13,6 @@ class Button(GameObject):
         self.text_color = text_color
         self.action = action # Function to call when clicked
         self.is_hovered = False
-
-        GameManager.game_objects_queue.append(self)  # Add to the game objects queue
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
