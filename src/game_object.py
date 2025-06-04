@@ -4,7 +4,6 @@ import pygame
 class GameObject:
     # mấy cái sprite load sẵn trong file config.py hoặc rảnh thì tạo file riêng để load asset
     def __init__(self, x, y, width, height, sprite = None):
-        GameManager.add_game_object(self)
         self.layer = 0 
         # Determine the rendering order, smaller layers are rendered first
         # Layer values should be 5, 10, 15, ...
@@ -19,6 +18,10 @@ class GameObject:
         
         if sprite is not None:
             self.sprite = pygame.transform.scale(self.sprite, (self.width, self.height))
+            
+    def set_position(self, x, y):
+        self.x = x
+        self.y = y
 
     def start(self):
         pass

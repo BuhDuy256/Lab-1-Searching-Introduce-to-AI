@@ -1,6 +1,6 @@
 from .renderer import Renderer
 from src.game_object import GameObject
-from config import WHITE
+from config import WHITE, TILE_SIZE
 from src.ui.button import Button
 from src.game_manager import GameManager
 import pygame
@@ -13,31 +13,31 @@ class GameScene:
 
         self.game_objects: list[GameObject] = []  # List of game objects in the scene
         self.buttons: list[Button] = []
+        
+        self.player: Player = None
 
         self.create_buttons()
         self.create_player()
 
-        self.game_objects.extend(GameManager.game_objects_queue)
-        self.game_objects.sort(key=lambda obj: getattr(obj, 'layer', 0))
-        GameManager.game_objects_queue.clear()
-
-        for game_object in self.game_objects:
-            if isinstance(game_object, Button):
-                self.buttons.append(game_object)
-
     def create_buttons(self):
         #example button creation
-        Button(50, 50, 200, 50, "Start Game", pygame.font.Font(None, 36), action=self.test_action, 
+        button = Button(50, 50, 200, 50, "Start Game", pygame.font.Font(None, 36), action=self.test_action, 
                         hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        
+        self.buttons.append(button)
+        self.game_objects.append(button)  # Add button to game objects for rendering
         
     def create_player(self):
         player_sprite = pygame.image.load("assets\images\player.png").convert_alpha()
-        Player(100, 100, 50, 50, sprite = player_sprite)
-
+        self.player = Player(100, 100, sprite = player_sprite)
+        self.game_objects.append(self.player)
+        
     def update(self):
         for game_object in self.game_objects:
             if game_object.active:
                 game_object.update()
+                
+        self.sync_game_objects_from_game_state()
 
     def render(self, screen):
         self.screen.fill(WHITE)
@@ -46,4 +46,8 @@ class GameScene:
                 game_object.render(screen)
 
     def test_action(self):
-        print("Chó là bạn, không phải tôi")
+        print("Alo alo")
+        
+    def sync_game_objects_from_game_state(self):
+        game_state = GameManager.current_state
+        self.player.set_position(game_state.player_pos[0] * TILE_SIZE, game_state.player_pos[1] * TILE_SIZE)
