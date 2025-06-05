@@ -4,6 +4,7 @@ from config import *
 from src.time_manager import Time
 from src.ui.game_scene import GameScene
 from src.game_manager import GameManager
+from src.ui.renderer import Renderer
 
 # aka scene_manager
 class Game:
@@ -14,6 +15,8 @@ class Game:
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
         pygame.display.set_caption("Sokoban AI Solver")
+
+        Renderer.load_assets()
 
         self.current_scene = GameScene(self.screen)
         

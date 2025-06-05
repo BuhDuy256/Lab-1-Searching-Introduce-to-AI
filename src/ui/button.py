@@ -1,10 +1,12 @@
+from config import GRAY, TEXT_COLOR, BLACK
 import pygame
-from config import *
-from src.game_object import GameObject
 
-class Button(GameObject):
+class Button:
     def __init__(self, x, y, width, height, text, font, color=GRAY, hover_color=None, text_color=TEXT_COLOR, action=None):
-        super().__init__(x, y, width ,height, sprite = None)
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
         self.rect = pygame.Rect(x, y, width, height)
         self.text = text
         self.font = font
@@ -14,7 +16,7 @@ class Button(GameObject):
         self.action = action # Function to call when clicked
         self.is_hovered = False
         
-        self.layer = 5
+        self.sprite = None
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
