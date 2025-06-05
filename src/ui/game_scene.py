@@ -28,7 +28,7 @@ class GameScene:
         self.game_objects.append(button)  # Add button to game objects for rendering
         
     def create_player(self):
-        player_sprite = pygame.image.load("assets\images\player.png").convert_alpha()
+        player_sprite = pygame.image.load("assets\\images\\player.png").convert_alpha()
         self.player = Player(100, 100, sprite = player_sprite)
         self.game_objects.append(self.player)
         
