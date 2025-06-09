@@ -16,13 +16,18 @@ class GameScene:
 
     def create_buttons(self):
         #example button creation
-        button = Button(500, 50, 200, 50, "DFS Solving", pygame.font.Font(None, 36), action=self.test_action,
+        button = Button(500, 50, 200, 50, "DFS", pygame.font.Font(None, 36), action=self.test_action,
                         hover_color=(200, 200, 200), text_color=(0, 0, 0))
 
         self.buttons.append(button)
         
     def update(self):
-        pass
+        if GameManager.actions:
+            try:
+                action = next(GameManager.actions)
+                GameManager.current_state = GameManager.current_state.apply_action(action)
+            except StopIteration:
+                GameManager.actions = None
 
     def render(self, screen):
         self.screen.fill(WHITE)
@@ -32,6 +37,4 @@ class GameScene:
         Renderer.render_game_state(self.screen)
 
     def test_action(self):
-        solutions = GameManager.apply_algorithm("DFS")
-        for solution in solutions:
-            print(solution)
+        GameManager.apply_algorithm("DFS")

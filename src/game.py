@@ -14,6 +14,7 @@ class Game:
         Time.init()
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.clock = pygame.time.Clock()
         self.screen.fill((255, 255, 255))
         pygame.display.set_caption("Sokoban AI Solver")
 
@@ -32,6 +33,7 @@ class Game:
 
             self.update()
             self.render()
+            self.clock.tick(FPS)
         
         pygame.quit()
 
@@ -41,7 +43,7 @@ class Game:
                 self.running = False
 
             # Pass event to buttons if not currently solving/animating heavily
-            if not GameManager.is_solving:
+            if not GameManager.actions:
                 for button in self.current_scene.buttons:
                     if button.handle_event(event):
                         break  # Stop after the first button handles the event

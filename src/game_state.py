@@ -1,5 +1,3 @@
-import copy
-
 class GameState:
     def __init__(self, player_pos, box_positions, wall_positions, goal_positions,
                  map_dims, parent=None, action=None, cost=0, depth=0):

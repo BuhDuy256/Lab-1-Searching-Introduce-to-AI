@@ -1,7 +1,7 @@
 from config import MAP_DIR
 import os
 
-from src.algorithms.dfs import dfs_solving
+from src.algorithms.dfs import dfs
 from src.game_state import GameState
 from src.map_loader import load_map
 
@@ -9,7 +9,7 @@ from src.map_loader import load_map
 class GameManager:
     algorithms = {
         # "BFS": solve_bfs,
-        "DFS": lambda state: dfs_solving(state),
+        "DFS": lambda state: dfs(state),
         # "UCS": solve_ucs,
         # "A* (Simple)": lambda s: solve_a_star(s, simple_heuristic),
         # "A* (Advanced)": lambda s: solve_a_star(s, advanced_heuristic_astar),
@@ -17,7 +17,10 @@ class GameManager:
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0
     selected_algo_idx = 0
-    is_solving = False
+
+    # is_solving = False
+    actions = []
+
     maps = []
     current_state: GameState = None
     initial_state: GameState = None
@@ -41,11 +44,18 @@ class GameManager:
 
     @staticmethod
     def apply_algorithm(algo_name):
-        if algo_name not in GameManager.algorithms:
+        if algo_name not in GameManager.available_algo_names:
             raise ValueError(f"Algorithm '{algo_name}' is not defined.")
+        GameManager.current_state = GameManager.initial_state
         temp_state = GameManager.initial_state
+
         solution = GameManager.algorithms[algo_name](temp_state)
-        return solution
+        if solution is None:
+            GameManager.actions = None
+            GameManager.is_solving = False
+        else:
+            GameManager.actions = iter(solution)
+            GameManager.is_solving = True
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()

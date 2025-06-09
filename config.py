@@ -3,7 +3,7 @@ import pygame
 # Screen dimensions
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 600
-FPS = 200
+FPS = 100
 
 # Tile size for rendering the game
 TILE_SIZE = 32

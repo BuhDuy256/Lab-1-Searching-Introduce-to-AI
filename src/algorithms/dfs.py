@@ -1,7 +1,7 @@
 from src.game_state import GameState
 
-def dfs_solving(state: GameState):
-    def dfs(curr_state: GameState, visited=None):
+def dfs(state: GameState):
+    def solve_dfs(curr_state: GameState, visited=None):
         if visited is None:
             visited = set()
 
@@ -18,13 +18,10 @@ def dfs_solving(state: GameState):
 
         for action in curr_state.get_possible_actions():
             next_state = curr_state.apply_action(action)
-            result = dfs(next_state, visited)
+            result = solve_dfs(next_state, visited)
             if result is not None:
                 return result
 
         return None
 
-    visited = set()
-    actions = dfs(state, visited)
-
-    return visited, actions
+    return solve_dfs(state)
