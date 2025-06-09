@@ -14,6 +14,7 @@ class Game:
         Time.init()
 
         self.screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+        self.screen.fill((255, 255, 255))
         pygame.display.set_caption("Sokoban AI Solver")
 
         Renderer.load_assets()
@@ -26,7 +27,6 @@ class Game:
         pass
 
     def run(self):
-        GameManager.choose_map(0)
         while self.running:
             self.handle_events()
 

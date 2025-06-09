@@ -1,5 +1,7 @@
 from config import MAP_DIR
 import os
+
+from src.algorithms.dfs import dfs_solving
 from src.game_state import GameState
 from src.map_loader import load_map
 
@@ -7,7 +9,7 @@ from src.map_loader import load_map
 class GameManager:
     algorithms = {
         # "BFS": solve_bfs,
-        # "DFS": solve_dfs,
+        "DFS": lambda state: dfs_solving(state),
         # "UCS": solve_ucs,
         # "A* (Simple)": lambda s: solve_a_star(s, simple_heuristic),
         # "A* (Advanced)": lambda s: solve_a_star(s, advanced_heuristic_astar),
@@ -36,7 +38,14 @@ class GameManager:
     def choose_map(index):
         GameManager.initial_state = load_map(os.path.join(MAP_DIR, GameManager.maps[index]))
         GameManager.current_state = GameManager.initial_state
-        
+
+    @staticmethod
+    def apply_algorithm(algo_name):
+        if algo_name not in GameManager.algorithms:
+            raise ValueError(f"Algorithm '{algo_name}' is not defined.")
+        temp_state = GameManager.initial_state
+        solution = GameManager.algorithms[algo_name](temp_state)
+        return solution
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()

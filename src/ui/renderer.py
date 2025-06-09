@@ -29,8 +29,6 @@ class Renderer:
         if game_state is None:
             return
 
-        screen.fill((0, 0, 0))  # Clear screen with black background
-
         for r in range(game_state.map_dims[0]):
             for c in range(game_state.map_dims[1]):
                 x, y = c * TILE_SIZE, r * TILE_SIZE
