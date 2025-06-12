@@ -1,8 +1,6 @@
-import pygame
-
 # Screen dimensions
-SCREEN_WIDTH = 800
-SCREEN_HEIGHT = 600
+SCREEN_WIDTH = 960
+SCREEN_HEIGHT = 640
 FPS = 100
 
 # Tile size for rendering the game
@@ -40,3 +38,7 @@ FONT_SIZE_SMALL = 20
 
 # Animation speed for solution playback (delay in ms between steps)
 ANIMATION_DELAY = 200  # milliseconds
+
+# Button
+BUTTON_WIDTH = 180
+BUTTON_HEIGHT = 40

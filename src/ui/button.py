@@ -13,8 +13,9 @@ class Button:
         self.color = color
         self.hover_color = hover_color if hover_color else color
         self.text_color = text_color
-        self.action = action # Function to call when clicked
+        self.action = action
         self.is_hovered = False
+        self.is_active = True
         
         self.sprite = None
 
@@ -32,10 +33,11 @@ class Button:
         pass
 
     def render(self, screen):
-        current_color = self.hover_color if self.is_hovered else self.color
-        pygame.draw.rect(screen, current_color, self.rect)
-        pygame.draw.rect(screen, BLACK, self.rect, 2) # Border
+        if self.is_active:
+            current_color = self.hover_color if self.is_hovered else self.color
+            pygame.draw.rect(screen, current_color, self.rect)
+            pygame.draw.rect(screen, BLACK, self.rect, 2) # Border
 
-        text_surface = self.font.render(self.text, True, self.text_color)
-        text_rect = text_surface.get_rect(center=self.rect.center)
-        screen.blit(text_surface, text_rect)
+            text_surface = self.font.render(self.text, True, self.text_color)
+            text_rect = text_surface.get_rect(center=self.rect.center)
+            screen.blit(text_surface, text_rect)

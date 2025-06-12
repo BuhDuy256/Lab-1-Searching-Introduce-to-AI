@@ -1,7 +1,6 @@
 from config import MAP_DIR
 import os
 
-from src.algorithms.dfs import dfs
 from src.game_state import GameState
 from src.map_loader import load_map
 
@@ -9,7 +8,7 @@ from src.map_loader import load_map
 class GameManager:
     algorithms = {
         # "BFS": solve_bfs,
-        "DFS": lambda state: dfs(state),
+        # "DFS": lambda state: dfs(state),
         # "UCS": solve_ucs,
         # "A* (Simple)": lambda s: solve_a_star(s, simple_heuristic),
         # "A* (Advanced)": lambda s: solve_a_star(s, advanced_heuristic_astar),

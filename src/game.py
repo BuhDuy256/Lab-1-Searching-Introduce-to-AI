@@ -44,7 +44,7 @@ class Game:
 
             # Pass event to buttons if not currently solving/animating heavily
             if not GameManager.actions:
-                for button in self.current_scene.buttons:
+                for button in self.current_scene.buttons.values():
                     if button.handle_event(event):
                         break  # Stop after the first button handles the event
 
