@@ -30,15 +30,28 @@ class Renderer:
             return
 
         for r in range(game_state.map_dims[0]):
-            for c in range(game_state.map_dims[1]):
-                x, y = c * TILE_SIZE, r * TILE_SIZE
-                rect = pygame.Rect(x, y, TILE_SIZE, TILE_SIZE)
-                pygame.draw.rect(screen, (50, 50, 50), rect, 1)  # Draw grid lines
+            c = 0
+            while c < game_state.map_dims[1]:
+                # Find the start of a floor (must be after a wall)
+                if not game_state.is_wall((r, c)) and (c == 0 or game_state.is_wall((r, c - 1))):
+                    start = c
+                    # Scan forward until the floor ends
+                    while c < game_state.map_dims[1] and not game_state.is_wall((r, c)):
+                        c += 1
+                    end = c
+                    # Optional: only draw if the floor is bounded on both sides
+                    if start > 0 and end < game_state.map_dims[1] and game_state.is_wall((r, end)):
+                        for floor_c in range(start, end):
+                            rect = pygame.Rect(floor_c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                            pygame.draw.rect(screen, (200, 200, 200), rect)
+                else:
+                    c += 1
+
 
         # Draw walls
         for (r, c) in game_state.wall_positions:
             rect = pygame.Rect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
-            pygame.draw.rect(screen, (100, 100, 100), rect)
+            pygame.draw.rect(screen, (139, 69, 19), rect)
 
         # Draw goals
         for (r, c) in game_state.goal_positions:
@@ -47,7 +60,7 @@ class Renderer:
 
         # Draw boxes
         for (r, c) in game_state.box_positions:
-            rect = pygame.Rect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            rect = pygame.Rect(c * TILE_SIZE + 5, r * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10)
             pygame.draw.rect(screen, (255, 165, 0), rect)
 
         # Draw player

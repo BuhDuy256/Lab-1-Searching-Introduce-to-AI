@@ -1,4 +1,3 @@
-import os
 import pygame
 from config import *
 from src.time_manager import Time

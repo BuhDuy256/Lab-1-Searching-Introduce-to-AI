@@ -12,7 +12,7 @@ class GameScene:
 
         self.create_buttons()
 
-        GameManager.choose_map(0)
+        GameManager.choose_map(3)
 
     def create_buttons(self):
         font = pygame.font.Font(None, 36)
@@ -87,7 +87,7 @@ class GameScene:
         if GameManager.actions:
             try:
                 action = next(GameManager.actions)
-                GameManager.current_state = GameManager.current_state.apply_action(action)
+                GameManager.current_state = GameManager.current_state.apply_action(action, 1)
             except StopIteration:
                 GameManager.actions = None
 
@@ -99,4 +99,4 @@ class GameScene:
         Renderer.render_game_state(self.screen)
 
     def test_action(self):
-        pass
+        GameManager.apply_algorithm("DFS")

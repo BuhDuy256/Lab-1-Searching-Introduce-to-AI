@@ -1,10 +1,10 @@
 # Screen dimensions
-SCREEN_WIDTH = 960
-SCREEN_HEIGHT = 640
-FPS = 100
+SCREEN_WIDTH = 1280
+SCREEN_HEIGHT = 720
+FPS = 15
 
 # Tile size for rendering the game
-TILE_SIZE = 32
+TILE_SIZE = 48
 
 # Colors (RGB)
 BLACK = (0, 0, 0)

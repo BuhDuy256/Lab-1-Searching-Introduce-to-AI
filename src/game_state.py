@@ -122,6 +122,6 @@ class GameState:
         path = []
         current = self
         while current.parent is not None:
-            path.append(current.action)
+            path.append(current.previous_action)
             current = current.parent
         return path[::-1] # Reverse to get actions from start
