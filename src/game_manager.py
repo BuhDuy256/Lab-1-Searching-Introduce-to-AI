@@ -4,6 +4,7 @@ from src.game_state import GameState
 from src.map_loader import load_map
 from src.algorithms import Algorithms
 import time
+import re
 
 # handle game logic and algorithms for solving Sokoban puzzles
 class GameManager:
@@ -28,10 +29,24 @@ class GameManager:
     @classmethod
     def load_map_files(cls):
         try:
-            cls.maps = sorted([f for f in os.listdir(MAP_DIR) if f.endswith(".txt")])
+            all_files = os.listdir(MAP_DIR)
+            cls.maps = sorted(
+                [f for f in all_files if re.match(r'^level\d+\.txt$', f)],
+                key=lambda name: int(re.findall(r'\d+', name)[0])
+            )
         except FileNotFoundError:
             print(f"Error: Map directory '{MAP_DIR}' not found.")
             cls.maps = []
+
+    @classmethod
+    def get_total_maps(cls):
+        try:
+            all_files = os.listdir(MAP_DIR)
+            valid_maps = [f for f in all_files if re.match(r'^level\d+\.txt$', f)]
+            return len(valid_maps)
+        except FileNotFoundError:
+            print(f"Error: Map directory '{MAP_DIR}' not found.")
+            return 0
 
     @staticmethod
     def hello():
@@ -39,6 +54,7 @@ class GameManager:
         
     @staticmethod
     def choose_map(index):
+        GameManager.selected_map_idx = index
         GameManager.initial_state = load_map(os.path.join(MAP_DIR, GameManager.maps[index]))
         GameManager.current_state = GameManager.initial_state
 

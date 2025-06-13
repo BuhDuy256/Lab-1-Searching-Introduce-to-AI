@@ -1,6 +1,7 @@
 import pygame
+from src.game_manager import GameManager
 
-class InputBox:
+class MapInputBox:
     def __init__(self, x, y, w, h, font, text=''):
         self.rect = pygame.Rect(x, y, w, h)
         self.color_inactive = pygame.Color('gray')
@@ -20,7 +21,20 @@ class InputBox:
         if event.type == pygame.KEYDOWN:
             if self.is_active:
                 if event.key == pygame.K_RETURN:
-                    return self.text
+                    result = self.text
+                    self.text = ""
+                    self.txt_surface = self.font.render(self.text, True, (0, 0, 0))
+
+                    chosen_map = int(result)
+                    total_maps = GameManager.get_total_maps()
+
+                    if chosen_map < 1:
+                        chosen_map = 1
+                    elif chosen_map > total_maps:
+                        chosen_map = total_maps
+
+                    GameManager.choose_map(chosen_map - 1)
+                    self.turn_off()
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 elif event.unicode.isdigit():
@@ -33,6 +47,10 @@ class InputBox:
         if (self.is_visible):
             screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
             pygame.draw.rect(screen, self.color, self.rect, 2)
+
+    def turn_off(self):
+        self.is_active = False
+        self.is_visible = False
 
     def get_text(self):
         return self.text
