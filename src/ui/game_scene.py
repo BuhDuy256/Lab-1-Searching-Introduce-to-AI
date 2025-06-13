@@ -3,12 +3,25 @@ from config import *
 from src.ui.button import Button
 import pygame
 from  src.game_manager import GameManager
+from src.ui.input_box import InputBox
+
+def buttons_are_visible(buttons: dict[str, Button], mode=True):
+    for button in buttons.values():
+        button.is_visible = mode
+        button.is_active = mode
 
 class GameScene:
     def __init__(self, screen):
         self.screen = screen
 
-        self.buttons: dict[str, Button] = {}
+        self.control_buttons: dict[str, Button] = {}
+        self.algo_buttons: dict[str, Button] = {}
+
+        self.is_solution_playing = False
+        self.is_solution_paused = False
+        self.display_algo_buttons = False # For Algorithm Button
+
+        self.map_input_box: InputBox = None
 
         self.create_buttons()
 
@@ -16,75 +29,60 @@ class GameScene:
 
     def create_buttons(self):
         font = pygame.font.Font(None, 36)
-        self.buttons = {}
+        self.control_buttons = {}
 
         x = SCREEN_WIDTH - BUTTON_WIDTH - 20
         y = 20
         spacing = 20
 
         start_button = Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, "START", font,
-                              action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["START"] = start_button
+                              action=self.start_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        self.control_buttons["START"] = start_button
 
         pause_button = Button(x, start_button.y + start_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT, "PAUSE",
                               font,
-                              action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["PAUSE"] = pause_button
+                              action=self.pause_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        self.control_buttons["PAUSE"] = pause_button
 
-        reset_button = Button(x, pause_button.y + pause_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT, "RESET",
-                              font,
-                              action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["RESET"] = reset_button
-
-        algorithm_button = Button(x, reset_button.y + reset_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
+        algorithm_button = Button(x, pause_button.y + pause_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
                                   "ALGORITHM", font,
-                                  action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["ALGORITHM"] = algorithm_button
+                                  action=self.algorithm_button_action, hover_color=(200, 200, 200),
+                                  text_color=(0, 0, 0))
+        self.control_buttons["ALGORITHM"] = algorithm_button
 
         map_button = Button(x, algorithm_button.y + algorithm_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
                             "MAP", font,
-                            action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["MAP"] = map_button
+                            action=self.map_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        self.control_buttons["MAP"] = map_button
 
         algo_x = x - spacing - BUTTON_WIDTH
         algo_y = y
 
-        dfs_button = Button(algo_x, algo_y, BUTTON_WIDTH, BUTTON_HEIGHT, "DFS", font,
-                            action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["DFS"] = dfs_button
+        algo_names = ["DFS", "BFS", "UCS", "A*", "IDDFS", "BIDIR", "IDA*"]
+        y_offset = algo_y
 
-        bfs_button = Button(algo_x, dfs_button.y + dfs_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT, "BFS",
-                            font,
-                            action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["BFS"] = bfs_button
+        for name in algo_names:
+            button = Button(
+                algo_x, y_offset,
+                BUTTON_WIDTH, BUTTON_HEIGHT,
+                name, font,
+                action=lambda n=name: self.select_algorithm(n),
+                hover_color=(200, 200, 200),
+                text_color=(0, 0, 0)
+            )
+            self.algo_buttons[name] = button
+            y_offset += BUTTON_HEIGHT + spacing
 
-        ucs_button = Button(algo_x, bfs_button.y + bfs_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT, "UCS",
-                            font,
-                            action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["UCS"] = ucs_button
+        map_x = x - spacing - BUTTON_WIDTH
+        map_y = y
 
-        a_star_button = Button(algo_x, ucs_button.y + ucs_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT, "A*",
-                               font,
-                               action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["A*"] = a_star_button
+        font = pygame.font.Font(None, 32)
+        self.map_input_box = InputBox(map_x, map_y, BUTTON_WIDTH, BUTTON_HEIGHT, font)
 
-        iddfs_button = Button(algo_x, a_star_button.y + a_star_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
-                              "IDDFS", font,
-                              action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["IDDFS"] = iddfs_button
-
-        bi_directional_button = Button(algo_x, iddfs_button.y + iddfs_button.height + spacing, BUTTON_WIDTH,
-                                       BUTTON_HEIGHT, "BIDIR", font,
-                                       action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["BIDIR"] = bi_directional_button
-
-        ida_star_button = Button(algo_x, bi_directional_button.y + bi_directional_button.height + spacing, BUTTON_WIDTH,
-                                 BUTTON_HEIGHT, "IDA*", font,
-                                 action=self.test_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.buttons["IDA*"] = ida_star_button
+        buttons_are_visible(self.algo_buttons, False)
 
     def update(self):
-        if GameManager.actions:
+        if GameManager.actions and not self.is_solution_paused:
             try:
                 action = next(GameManager.actions)
                 GameManager.current_state = GameManager.current_state.apply_action(action, 1)
@@ -93,10 +91,57 @@ class GameScene:
 
     def render(self, screen):
         self.screen.fill(WHITE)
-        for button in self.buttons.values():
+        for button in self.control_buttons.values():
             button.render(screen)
+        for button in self.algo_buttons.values():
+            button.render(screen)
+
+        self.map_input_box.render(screen)
 
         Renderer.render_game_state(self.screen)
 
-    def test_action(self):
-        GameManager.apply_algorithm("DFS")
+    def start_button_action(self):
+        # Hide Algo Buttons
+        self.display_algo_buttons = False
+        buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
+        # Hide Map Input Box
+        self.map_input_box.is_visible = False
+        self.map_input_box.is_active = False
+
+        algo_name = self.control_buttons["ALGORITHM"].get_text()
+        if algo_name not in self.control_buttons:
+            pass
+        GameManager.apply_algorithm(algo_name)
+
+    def pause_button_action(self):
+        # Hide Algo Buttons
+        self.display_algo_buttons = False
+        buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
+        # Hide Map Input Box
+        self.map_input_box.is_visible = False
+        self.map_input_box.is_active = False
+
+        self.is_solution_paused = not self.is_solution_paused
+        new_label = "PAUSE" if not self.is_solution_paused else "CONTINUE"
+        self.control_buttons["PAUSE"].set_text(new_label)
+
+    def algorithm_button_action(self):
+        # Hide Map Input Box
+        self.map_input_box.is_visible = False
+        self.map_input_box.is_active = False
+
+        self.display_algo_buttons = not self.display_algo_buttons
+        buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
+
+    def map_button_action(self):
+        # Hide Algo Buttons
+        self.display_algo_buttons = False
+        buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
+
+        self.map_input_box.is_visible = not self.map_input_box.is_visible
+        self.map_input_box.is_active = not self.map_input_box.is_active
+
+    def select_algorithm(self, name: str):
+        self.control_buttons["ALGORITHM"].set_text(name)
+        self.display_algo_buttons = False
+        buttons_are_visible(self.algo_buttons, False)

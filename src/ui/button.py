@@ -15,15 +15,23 @@ class Button:
         self.text_color = text_color
         self.action = action
         self.is_hovered = False
+
         self.is_active = True
+        self.is_visible = True
         
         self.sprite = None
+
+    def set_text(self, text):
+        self.text = text
+
+    def get_text(self):
+        return self.text
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEMOTION:
             self.is_hovered = self.rect.collidepoint(event.pos)
         if event.type == pygame.MOUSEBUTTONDOWN:
-            if event.button == 1 and self.is_hovered: # Left click
+            if event.button == 1 and self.is_hovered and self.is_active: # Left click
                 if self.action:
                     self.action() # Execute the button's action
                 return True # Indicates button was clicked
@@ -33,7 +41,7 @@ class Button:
         pass
 
     def render(self, screen):
-        if self.is_active:
+        if self.is_visible:
             current_color = self.hover_color if self.is_hovered else self.color
             pygame.draw.rect(screen, current_color, self.rect)
             pygame.draw.rect(screen, BLACK, self.rect, 2) # Border

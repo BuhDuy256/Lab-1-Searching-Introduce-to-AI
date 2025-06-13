@@ -55,11 +55,11 @@ class GameManager:
         print(f"Algorithm '{algo_name}' took {int((end - start) * 1000)} ms.")
         if solution is None:
             GameManager.actions = None
-            GameManager.is_solving = False
+            # GameManager.is_solving = False
             print("No solution found.")
         else:
             GameManager.actions = iter(solution)
-            GameManager.is_solving = True
+            # GameManager.is_solving = True
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()

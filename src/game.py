@@ -32,7 +32,7 @@ class Game:
 
             self.update()
             self.render()
-            self.clock.tick(FPS)
+            # self.clock.tick(FPS)
         
         pygame.quit()
 
@@ -43,9 +43,17 @@ class Game:
 
             # Pass event to buttons if not currently solving/animating heavily
             if not GameManager.actions:
-                for button in self.current_scene.buttons.values():
+                for button in self.current_scene.control_buttons.values():
                     if button.handle_event(event):
-                        break  # Stop after the first button handles the event
+                        break  # Stop after the first control button handles the event
+
+                for button in self.current_scene.algo_buttons.values():
+                    if button.handle_event(event):
+                        break  # Stop after the first algo button handles the event\
+
+                self.current_scene.map_input_box.handle_event(event)
+
+
 
     def update(self):
         # Game logic updates that happen continuously (not much in this type of game)

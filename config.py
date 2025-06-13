@@ -1,7 +1,7 @@
 # Screen dimensions
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
-FPS = 15
+FPS = 50
 
 # Tile size for rendering the game
 TILE_SIZE = 48
