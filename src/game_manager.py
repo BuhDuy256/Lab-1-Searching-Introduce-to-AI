@@ -8,6 +8,10 @@ import re
 
 # handle game logic and algorithms for solving Sokoban puzzles
 class GameManager:
+    frame_counter = 0
+    frames_per_action = 10
+    current_action = None
+
     algorithms = {
         # "DFS": lambda state: Algorithms.dfs(state),
         "BFS": lambda state: Algorithms.bfs(state),

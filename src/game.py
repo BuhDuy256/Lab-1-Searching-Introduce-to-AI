@@ -41,17 +41,15 @@ class Game:
             if event.type == pygame.QUIT:
                 self.running = False
 
-            # Pass event to buttons if not currently solving/animating heavily
-            if not GameManager.actions:
-                for button in self.current_scene.control_buttons.values():
-                    if button.handle_event(event):
-                        break  # Stop after the first control button handles the event
+            for button in self.current_scene.control_buttons.values():
+                if button.handle_event(event):
+                    break  # Stop after the first control button handles the event
 
-                for button in self.current_scene.algo_buttons.values():
-                    if button.handle_event(event):
-                        break  # Stop after the first algo button handles the event\
+            for button in self.current_scene.algo_buttons.values():
+                if button.handle_event(event):
+                    break  # Stop after the first algo button handles the event\
 
-                self.current_scene.map_input_box.handle_event(event)
+            self.current_scene.map_input_box.handle_event(event)
 
 
 

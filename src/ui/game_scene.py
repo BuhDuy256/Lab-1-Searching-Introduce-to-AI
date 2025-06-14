@@ -18,8 +18,7 @@ class GameScene:
         self.control_buttons: dict[str, Button] = {}
         self.algo_buttons: dict[str, Button] = {}
 
-        self.is_solution_playing = False
-        self.is_solution_paused = False
+        self.is_paused = False
         self.display_algo_buttons = False # For Algorithm Button
 
         self.map_input_box: MapInputBox = None
@@ -83,14 +82,21 @@ class GameScene:
         buttons_are_visible(self.algo_buttons, False)
 
     def update(self):
-        if GameManager.actions and not self.is_solution_paused:
-            try:
-                action, action_cost = next(GameManager.actions)
-                GameManager.current_state = GameManager.current_state.apply_action(action, action_cost)
-            except StopIteration:
-                GameManager.actions = None
+        if GameManager.actions and not self.is_paused:
+            GameManager.frame_counter += 1
+
+            if GameManager.frame_counter >= GameManager.frames_per_action:
+                GameManager.frame_counter = 0
+                try:
+                    GameManager.current_action = next(GameManager.actions)
+                    action, action_cost = GameManager.current_action
+                    GameManager.current_state = GameManager.current_state.apply_action(action, action_cost)
+                except StopIteration:
+                    GameManager.actions = None
+                    GameManager.current_action = None
 
         self.control_buttons["MAP"].set_text("MAP " + str(GameManager.selected_map_idx + 1))
+        self.control_buttons["PAUSE"].set_text("CONTINUE" if self.is_paused else "PAUSE")
 
     def render(self, screen):
         self.screen.fill(WHITE)
@@ -111,6 +117,8 @@ class GameScene:
         # Hide Map Input Box
         self.map_input_box.turn_off()
 
+        self.is_paused = False
+
         algo_name = self.control_buttons["ALGORITHM"].get_text()
 
         if algo_name not in GameManager.algorithms:
@@ -129,9 +137,7 @@ class GameScene:
         # Hide Map Input Box
         self.map_input_box.turn_off()
 
-        self.is_solution_paused = not self.is_solution_paused
-        new_label = "PAUSE" if not self.is_solution_paused else "CONTINUE"
-        self.control_buttons["PAUSE"].set_text(new_label)
+        self.is_paused = not self.is_paused
 
     def algorithm_button_action(self):
         # Hide Map Input Box
