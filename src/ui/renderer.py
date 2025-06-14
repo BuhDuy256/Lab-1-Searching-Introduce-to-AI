@@ -6,13 +6,15 @@ import os
 
 # render các game object dựa vào game state
 class Renderer:
-    player_sprite = None  # Will load after pygame is initialized
+    player_sprite = None
+    font = None
 
     @staticmethod
     def load_assets():
         Renderer.player_sprite = pygame.image.load(
             os.path.join("assets", "images", "player.png")
         ).convert_alpha()
+        Renderer.font = pygame.font.Font(None, 30)
         Renderer.player_sprite = pygame.transform.scale(Renderer.player_sprite, (TILE_SIZE, TILE_SIZE))
 
     @staticmethod
@@ -20,8 +22,16 @@ class Renderer:
         pass
 
     @staticmethod
-    def render_text(screen, text, position, font, color=TEXT_COLOR, center=False):
-        pass
+    def render_text(screen, text, x, y, center=False):
+        text_surface = Renderer.font.render(text, True, (0, 0, 0))
+        text_rect = text_surface.get_rect()
+
+        if center:
+            text_rect.center = (x, y)
+        else:
+            text_rect.topleft = (x, y)
+
+        screen.blit(text_surface, text_rect)
 
     @staticmethod
     def render_game_state(screen):

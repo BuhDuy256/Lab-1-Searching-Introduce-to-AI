@@ -23,11 +23,13 @@ class GameScene:
 
         self.map_input_box: MapInputBox = None
 
-        self.create_buttons()
+        self.create_GUI()
 
         GameManager.choose_map(0)
 
-    def create_buttons(self):
+        self.step = 0
+
+    def create_GUI(self):
         font = pygame.font.Font(None, 36)
         self.control_buttons = {}
 
@@ -76,7 +78,6 @@ class GameScene:
         map_x = x - spacing - BUTTON_WIDTH
         map_y = map_button.y
 
-        font = pygame.font.Font(None, 32)
         self.map_input_box = MapInputBox(map_x, map_y, BUTTON_WIDTH, BUTTON_HEIGHT, font)
 
         buttons_are_visible(self.algo_buttons, False)
@@ -91,6 +92,7 @@ class GameScene:
                     GameManager.current_action = next(GameManager.actions)
                     action, action_cost = GameManager.current_action
                     GameManager.current_state = GameManager.current_state.apply_action(action, action_cost)
+                    self.step += 1
                 except StopIteration:
                     GameManager.actions = None
                     GameManager.current_action = None
@@ -108,6 +110,21 @@ class GameScene:
         self.map_input_box.render(screen)
 
         Renderer.render_game_state(self.screen)
+
+        label_x = 20
+        value_x = 220
+
+        y = SCREEN_HEIGHT - 150
+        spacing = 50
+
+        Renderer.render_text(screen, "Step:", label_x, y)
+        Renderer.render_text(screen, str(self.step), value_x, y)
+
+        Renderer.render_text(screen, "Explored Nodes:", label_x, y + spacing)
+        Renderer.render_text(screen, str(GameManager.n_explored_nodes), value_x, y + spacing)
+
+        Renderer.render_text(screen, "Solving Time:", label_x, y + spacing * 2)
+        Renderer.render_text(screen, str(GameManager.solving_time) + " ms", value_x, y + spacing * 2)
 
     def start_button_action(self):
         # Hide Algo Buttons

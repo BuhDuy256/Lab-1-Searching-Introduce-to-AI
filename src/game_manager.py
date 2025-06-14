@@ -26,8 +26,10 @@ class GameManager:
     selected_map_idx = 0
     selected_algo_idx = 0
 
-    # is_solving = False
+    # When an algorithm is applied
     actions = []
+    n_explored_nodes = 0
+    solving_time = 0
 
     maps = []
     current_state: GameState = None
@@ -73,16 +75,19 @@ class GameManager:
         temp_state = GameManager.initial_state
 
         start = time.time()
-        solution = GameManager.algorithms[algo_name](temp_state)
+        solution, n_explored_node = GameManager.algorithms[algo_name](temp_state)
         end = time.time()
-        print(f"Algorithm '{algo_name}' took {int((end - start) * 1000)} ms.")
+        solving_time = int((end - start) * 1000)
+        print(f"Algorithm '{algo_name}' took {solving_time} ms.")
         if solution is None:
             GameManager.actions = None
-            # GameManager.is_solving = False
+            GameManager.n_explored_nodes = 0
+            GameManager.solving_time = solving_time
             print("No solution found.")
         else:
             GameManager.actions = iter(solution)
-            # GameManager.is_solving = True
+            GameManager.n_explored_nodes = n_explored_node
+            GameManager.solving_time = solving_time
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()
