@@ -112,17 +112,20 @@ class GameScene:
         label_x = 20
         value_x = 220
 
-        y = SCREEN_HEIGHT - 150
-        spacing = 50
+        spacing = 40  # Giảm khoảng cách giữa các dòng để tiết kiệm không gian
+        y = SCREEN_HEIGHT - spacing * 4 - 20  # Đảm bảo không vượt quá chiều cao
 
         Renderer.render_text(screen, "Step:", label_x, y)
         Renderer.render_text(screen, str(GameManager.solution_rendering_step), value_x, y)
 
-        Renderer.render_text(screen, "Explored Nodes:", label_x, y + spacing)
-        Renderer.render_text(screen, str(GameManager.n_explored_nodes), value_x, y + spacing)
+        Renderer.render_text(screen, "Total Cost:", label_x, y + spacing)
+        Renderer.render_text(screen, str(GameManager.current_state.cost), value_x, y + spacing)
 
-        Renderer.render_text(screen, "Solving Time:", label_x, y + spacing * 2)
-        Renderer.render_text(screen, str(GameManager.solving_time) + " ms", value_x, y + spacing * 2)
+        Renderer.render_text(screen, "Explored Nodes:", label_x, y + spacing * 2)
+        Renderer.render_text(screen, str(GameManager.n_explored_nodes), value_x, y + spacing * 2)
+
+        Renderer.render_text(screen, "Solving Time:", label_x, y + spacing * 3)
+        Renderer.render_text(screen, str(GameManager.solving_time) + " ms", value_x, y + spacing * 3)
 
     def start_button_action(self):
         # Hide Algo Buttons

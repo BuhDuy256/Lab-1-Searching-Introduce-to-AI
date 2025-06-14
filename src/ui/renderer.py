@@ -1,7 +1,6 @@
-from config import TEXT_COLOR
+from config import TEXT_COLOR, TILE_SIZE, STATE_RENDERING_AREA_WIDTH, STATE_RENDERING_AREA_HEIGHT
 from src.game_manager import GameManager
 import pygame
-from config import TILE_SIZE
 import os
 
 # render các game object dựa vào game state
@@ -15,7 +14,6 @@ class Renderer:
             os.path.join("assets", "images", "player.png")
         ).convert_alpha()
         Renderer.font = pygame.font.Font(None, 30)
-        Renderer.player_sprite = pygame.transform.scale(Renderer.player_sprite, (TILE_SIZE, TILE_SIZE))
 
     @staticmethod
     def render_board(screen, game_state, offset_x=0, offset_y=0):
@@ -23,7 +21,7 @@ class Renderer:
 
     @staticmethod
     def render_text(screen, text, x, y, center=False):
-        text_surface = Renderer.font.render(text, True, (0, 0, 0))
+        text_surface = Renderer.font.render(text, True, TEXT_COLOR)
         text_rect = text_surface.get_rect()
 
         if center:
@@ -39,6 +37,26 @@ class Renderer:
         if game_state is None:
             return
 
+        tile_size = TILE_SIZE
+        rows, cols = game_state.map_dims
+
+        height_exceeded = tile_size * rows > STATE_RENDERING_AREA_HEIGHT
+        width_exceeded = tile_size * cols > STATE_RENDERING_AREA_WIDTH
+
+        if height_exceeded and width_exceeded:
+            if rows >= cols:
+                tile_size = int(STATE_RENDERING_AREA_HEIGHT / rows)
+            else:
+                tile_size = int(STATE_RENDERING_AREA_WIDTH / cols)
+        elif height_exceeded:
+            tile_size = int(STATE_RENDERING_AREA_HEIGHT / rows)
+        elif width_exceeded:
+            tile_size = int(STATE_RENDERING_AREA_WIDTH / cols)
+
+        Renderer.player_sprite = pygame.transform.scale(
+            Renderer.player_sprite, (tile_size, tile_size)
+        )
+
         for r in range(game_state.map_dims[0]):
             c = 0
             while c < game_state.map_dims[1]:
@@ -52,27 +70,29 @@ class Renderer:
                     # Optional: only draw if the floor is bounded on both sides
                     if start > 0 and end < game_state.map_dims[1] and game_state.is_wall((r, end)):
                         for floor_c in range(start, end):
-                            rect = pygame.Rect(floor_c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                            rect = pygame.Rect(floor_c * tile_size, r * tile_size, tile_size, tile_size)
                             pygame.draw.rect(screen, (200, 200, 200), rect)
                 else:
                     c += 1
 
-
         # Draw walls
         for (r, c) in game_state.wall_positions:
-            rect = pygame.Rect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            rect = pygame.Rect(c * tile_size, r * tile_size, tile_size, tile_size)
             pygame.draw.rect(screen, (139, 69, 19), rect)
 
         # Draw goals
         for (r, c) in game_state.goal_positions:
-            rect = pygame.Rect(c * TILE_SIZE, r * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            rect = pygame.Rect(c * tile_size, r * tile_size, tile_size, tile_size)
             pygame.draw.rect(screen, (0, 255, 0), rect)
 
         # Draw boxes
         for (r, c) in game_state.box_positions:
-            rect = pygame.Rect(c * TILE_SIZE + 5, r * TILE_SIZE + 5, TILE_SIZE - 10, TILE_SIZE - 10)
+            rect = pygame.Rect(c * tile_size + 5, r * tile_size + 5, tile_size - 10, tile_size - 10)
             pygame.draw.rect(screen, (255, 165, 0), rect)
 
         # Draw player
         if Renderer.player_sprite:
-            screen.blit(Renderer.player_sprite, (game_state.player_pos[1] * TILE_SIZE, game_state.player_pos[0] * TILE_SIZE))
+            screen.blit(
+                Renderer.player_sprite,
+                (game_state.player_pos[1] * tile_size, game_state.player_pos[0] * tile_size)
+            )

@@ -3,6 +3,10 @@ SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 FPS = 50
 
+# State Rendering Area
+STATE_RENDERING_AREA_WIDTH = 896
+STATE_RENDERING_AREA_HEIGHT = 504
+
 # Tile size for rendering the game
 TILE_SIZE = 48
 
