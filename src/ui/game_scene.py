@@ -26,7 +26,7 @@ class GameScene:
 
         self.create_buttons()
 
-        GameManager.choose_map(3)
+        GameManager.choose_map(0)
 
     def create_buttons(self):
         font = pygame.font.Font(None, 36)

@@ -15,6 +15,8 @@ class GameManager:
         "A-Star": lambda state: Algorithms.a_star(state),
         "IDDFS": lambda state: Algorithms.iddfs(state),
         "BI-DIRECTIONAL": lambda state: Algorithms.bi_directional(state),
+        "BEAM": lambda state: Algorithms.beam(state),
+        "IDA-Star": lambda state: Algorithms.ida_star(state),
     }
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0

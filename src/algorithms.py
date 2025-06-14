@@ -160,3 +160,101 @@ class Algorithms:
     @staticmethod
     def bi_directional(initial_state: GameState):
        pass
+
+    @staticmethod
+    def beam(initial_state: GameState, beam_width=5):
+        from heapq import heappush, heappop
+        from itertools import count
+
+        distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
+        counter = count()
+
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position in distances:
+                    h_value += distances[box_position]
+                else:
+                    return float('inf')
+            return h_value
+
+        frontier = [initial_state]
+        visited = set()
+        min_cost = {initial_state: 0}
+
+        while frontier:
+            candidates = []
+
+            for state in frontier:
+                if state.is_win():
+                    return state.get_path()
+
+                for action, action_cost in state.get_possible_actions():
+                    next_state = state.apply_action(action, action_cost)
+
+                    if next_state in visited:
+                        continue
+
+                    total_cost = next_state.cost
+                    h = heuristic(next_state)
+
+                    if h == float('inf'):
+                        continue
+
+                    if next_state not in min_cost or total_cost < min_cost[next_state]:
+                        min_cost[next_state] = total_cost
+                        heappush(candidates, (h, next(counter), next_state))
+
+            frontier = [heappop(candidates)[2] for _ in range(min(beam_width, len(candidates)))]
+            visited.update(frontier)
+
+        return None
+
+    @staticmethod
+    def ida_star(initial_state: GameState):
+        distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
+
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position in distances:
+                    h_value += distances[box_position]
+                else:
+                    return float('inf')
+            return h_value
+
+        def search(state: GameState, g: int, threshold: int, visited: set):
+            f = g + heuristic(state)
+            if f > threshold:
+                return f
+
+            if state.is_win():
+                return state.get_path()
+
+            visited.add(state)
+            min_threshold = float('inf')
+
+            for action, action_cost in state.get_possible_actions():
+                next_state = state.apply_action(action, action_cost)
+                if next_state in visited:
+                    continue
+
+                result = search(next_state, g + action_cost, threshold, visited)
+                if isinstance(result, list):
+                    return result
+                if isinstance(result, (int, float)):
+                    min_threshold = min(min_threshold, result)
+
+            visited.remove(state)
+            return min_threshold
+
+        threshold = heuristic(initial_state)
+        visited = set()
+
+        while True:
+            result = search(initial_state, 0, threshold, visited)
+            if isinstance(result, list):
+                return result  # Found solution
+            if result == float('inf'):
+                return None  # No solution
+            threshold = result  # Increase threshold and retry
