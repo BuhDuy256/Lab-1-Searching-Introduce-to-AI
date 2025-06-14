@@ -36,28 +36,28 @@ class GameScene:
         y = 20
         spacing = 20
 
-        start_button = Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, "START", font,
-                              action=self.start_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.control_buttons["START"] = start_button
+        map_button = Button(x, y, BUTTON_WIDTH, BUTTON_HEIGHT, "MAP", font,
+                            action=self.map_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        self.control_buttons["MAP"] = map_button
 
-        pause_button = Button(x, start_button.y + start_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT, "PAUSE",
-                              font,
-                              action=self.pause_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.control_buttons["PAUSE"] = pause_button
-
-        algorithm_button = Button(x, pause_button.y + pause_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
+        algorithm_button = Button(x, map_button.y + map_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
                                   "ALGORITHM", font,
                                   action=self.algorithm_button_action, hover_color=(200, 200, 200),
                                   text_color=(0, 0, 0))
         self.control_buttons["ALGORITHM"] = algorithm_button
 
-        map_button = Button(x, algorithm_button.y + algorithm_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
-                            "MAP" , font,
-                            action=self.map_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
-        self.control_buttons["MAP"] = map_button
+        start_button = Button(x, algorithm_button.y + algorithm_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
+                              "START", font,
+                              action=self.start_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        self.control_buttons["START"] = start_button
+
+        pause_button = Button(x, start_button.y + start_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
+                              "PAUSE", font,
+                              action=self.pause_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        self.control_buttons["PAUSE"] = pause_button
 
         algo_x = x - spacing - BUTTON_WIDTH
-        algo_y = y
+        algo_y = algorithm_button.y
 
         algo_names = list(GameManager.algorithms.keys())
         y_offset = algo_y
