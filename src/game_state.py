@@ -27,6 +27,32 @@ class GameState:
             return False
         return all(box_pos in self.goal_positions for box_pos in self.box_positions)
 
+    def is_deadlock(self):
+        for box_pos in self.box_positions:
+            if box_pos in self.goal_positions:
+                continue  # not a deadlock if it's already on a goal
+
+            r, c = box_pos
+
+            walls = {
+                'up': self.is_wall((r - 1, c)),
+                'down': self.is_wall((r + 1, c)),
+                'left': self.is_wall((r, c - 1)),
+                'right': self.is_wall((r, c + 1)),
+            }
+
+            is_corner = (
+                    (walls['up'] and walls['left']) or
+                    (walls['up'] and walls['right']) or
+                    (walls['down'] and walls['left']) or
+                    (walls['down'] and walls['right'])
+            )
+
+            if is_corner:
+                return True
+
+        return False
+
     def get_possible_actions(self):
         actions = []
         possible_moves = {
@@ -37,15 +63,34 @@ class GameState:
         for action_name, (dr, dc) in possible_moves.items():
             new_player_pos = (self.player_pos[0] + dr, self.player_pos[1] + dc)
             action_cost = 1
+
+            # Skip if the new position is a wall
             if self.is_wall(new_player_pos):
                 continue
 
+            # If the new position has a box
             if self.is_box(new_player_pos):
                 new_box_pos = (new_player_pos[0] + dr, new_player_pos[1] + dc)
+
+                # Cannot push the box into another box or wall
                 if self.is_wall(new_box_pos) or self.is_box(new_box_pos):
                     continue
-                action_cost += 1
+
+                action_cost += 1  # Pushing a box costs more
+
+                # Simulate the action to check for deadlock
+                next_state = self.apply_action(action_name, action_cost)
+
+                # If this action leads to a deadlock, skip it
+                if next_state.is_deadlock():
+                    continue
+            else:
+                # Simulate move (without pushing a box)
+                next_state = self.apply_action(action_name, action_cost)
+
+            # Add the valid action and its cost
             actions.append((action_name, action_cost))
+
         return actions
 
     def apply_action(self, action, action_cost):
@@ -79,32 +124,6 @@ class GameState:
             depth=self.depth + 1
         )
 
-    def is_deadlock(self):
-        for box_pos in self.box_positions:
-            if box_pos in self.goal_positions:
-                continue  # not a deadlock if it's already on a goal
-
-            r, c = box_pos
-
-            walls = {
-                'up': self.is_wall((r - 1, c)),
-                'down': self.is_wall((r + 1, c)),
-                'left': self.is_wall((r, c - 1)),
-                'right': self.is_wall((r, c + 1)),
-            }
-
-            is_corner = (
-                    (walls['up'] and walls['left']) or
-                    (walls['up'] and walls['right']) or
-                    (walls['down'] and walls['left']) or
-                    (walls['down'] and walls['right'])
-            )
-
-            if is_corner:
-                return True
-
-        return False
-
     def __hash__(self):
         return hash((self.player_pos, self.box_positions))
 
@@ -118,10 +137,43 @@ class GameState:
         return self.cost < other.cost
 
     def get_path(self):
-        """Reconstructs the path of actions from the initial state to this state."""
+        """Reconstructs the path of (action, cost) from the initial state to this state."""
         path = []
         current = self
         while current.parent is not None:
-            path.append(current.previous_action)
+            path.append((current.previous_action, current.cost - current.parent.cost))  # Include cost here
             current = current.parent
-        return path[::-1] # Reverse to get actions from start
+        return path[::-1]  # Reverse to get path from start
+
+    def get_mahattan_distances_from_goal_to_all_nodes(self):
+        from queue import Queue
+
+        q = Queue()
+        visited = set()
+        distances = {}
+
+        directions = {
+            'UP': (-1, 0), 'DOWN': (1, 0),
+            'LEFT': (0, -1), 'RIGHT': (0, 1)
+        }
+
+        for goal in self.goal_positions:
+            q.put((goal, 0))
+            visited.add(goal)
+
+        while not q.empty():
+            (r, c), dist = q.get()
+            distances[(r, c)] = dist
+
+            for dr, dc in directions.values():
+                nr, nc = r + dr, c + dc
+
+                if (nr, nc) in visited:
+                    continue
+                if self.is_wall((nr, nc)):
+                    continue
+
+                visited.add((nr, nc))
+                q.put(((nr, nc), dist + 1))
+
+        return distances

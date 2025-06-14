@@ -75,7 +75,7 @@ class GameScene:
             y_offset += BUTTON_HEIGHT + spacing
 
         map_x = x - spacing - BUTTON_WIDTH
-        map_y = y
+        map_y = map_button.y
 
         font = pygame.font.Font(None, 32)
         self.map_input_box = MapInputBox(map_x, map_y, BUTTON_WIDTH, BUTTON_HEIGHT, font)
@@ -85,8 +85,8 @@ class GameScene:
     def update(self):
         if GameManager.actions and not self.is_solution_paused:
             try:
-                action = next(GameManager.actions)
-                GameManager.current_state = GameManager.current_state.apply_action(action, 1)
+                action, action_cost = next(GameManager.actions)
+                GameManager.current_state = GameManager.current_state.apply_action(action, action_cost)
             except StopIteration:
                 GameManager.actions = None
 

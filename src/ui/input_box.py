@@ -44,8 +44,9 @@ class MapInputBox:
         return None
 
     def render(self, screen):
-        if (self.is_visible):
-            screen.blit(self.txt_surface, (self.rect.x+5, self.rect.y+5))
+        if self.is_visible:
+            text_rect = self.txt_surface.get_rect(center=self.rect.center)
+            screen.blit(self.txt_surface, text_rect)
             pygame.draw.rect(screen, self.color, self.rect, 2)
 
     def turn_off(self):

@@ -10,10 +10,11 @@ import re
 class GameManager:
     algorithms = {
         "DFS": lambda state: Algorithms.dfs(state),
-        # "BFS": solve_bfs,
-        # "UCS": solve_ucs,
-        # "A* (Simple)": lambda s: solve_a_star(s, simple_heuristic),
-        # "A* (Advanced)": lambda s: solve_a_star(s, advanced_heuristic_astar),
+        "BFS": lambda state: Algorithms.bfs(state),
+        "UCS": lambda state: Algorithms.ucs(state),
+        "A-Star": lambda state: Algorithms.a_star(state),
+        "IDDFS": lambda state: Algorithms.iddfs(state),
+        "BI-DIRECTIONAL": lambda state: Algorithms.bi_directional(state),
     }
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0
