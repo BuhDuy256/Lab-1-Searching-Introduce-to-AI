@@ -36,7 +36,7 @@ FONT_NAME = None  # Use Pygame default font, or specify e.g. 'arial'
 FONT_SIZE_MEDIUM = 30
 FONT_SIZE_SMALL = 20
 
-# Animation speed for solution playback (delay in ms between steps)
+# Animation speed for solution playback (delay in ms between solution_rendering_steps)
 ANIMATION_DELAY = 200  # milliseconds
 
 # Button

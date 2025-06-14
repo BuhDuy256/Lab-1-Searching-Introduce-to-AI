@@ -27,8 +27,6 @@ class GameScene:
 
         GameManager.choose_map(0)
 
-        self.step = 0
-
     def create_GUI(self):
         font = pygame.font.Font(None, 36)
         self.control_buttons = {}
@@ -92,7 +90,7 @@ class GameScene:
                     GameManager.current_action = next(GameManager.actions)
                     action, action_cost = GameManager.current_action
                     GameManager.current_state = GameManager.current_state.apply_action(action, action_cost)
-                    self.step += 1
+                    GameManager.solution_rendering_step += 1
                 except StopIteration:
                     GameManager.actions = None
                     GameManager.current_action = None
@@ -118,7 +116,7 @@ class GameScene:
         spacing = 50
 
         Renderer.render_text(screen, "Step:", label_x, y)
-        Renderer.render_text(screen, str(self.step), value_x, y)
+        Renderer.render_text(screen, str(GameManager.solution_rendering_step), value_x, y)
 
         Renderer.render_text(screen, "Explored Nodes:", label_x, y + spacing)
         Renderer.render_text(screen, str(GameManager.n_explored_nodes), value_x, y + spacing)

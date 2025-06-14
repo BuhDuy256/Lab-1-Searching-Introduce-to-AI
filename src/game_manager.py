@@ -28,6 +28,7 @@ class GameManager:
 
     # When an algorithm is applied
     actions = []
+    solution_rendering_step = 0
     n_explored_nodes = 0
     solving_time = 0
 

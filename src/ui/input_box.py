@@ -34,6 +34,10 @@ class MapInputBox:
                         chosen_map = total_maps
 
                     GameManager.choose_map(chosen_map - 1)
+                    GameManager.actions = None
+                    GameManager.n_explored_nodes = 0
+                    GameManager.solving_time = 0
+                    GameManager.solution_rendering_step = 0
                     self.turn_off()
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
