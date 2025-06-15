@@ -140,8 +140,6 @@ class Algorithms:
 
     @staticmethod
     def iddfs(initial_state: GameState):
-        import sys
-
         def dls(current_state: GameState, depth: int, visited: set):
             nonlocal n_explored_nodes
             if current_state in visited:
@@ -165,7 +163,7 @@ class Algorithms:
             visited.remove(current_state)
             return None
 
-        max_depth = sys.maxsize
+        max_depth = 50
         n_explored_nodes = 0
 
         for depth_limit in range(max_depth):

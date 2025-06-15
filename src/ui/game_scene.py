@@ -112,8 +112,8 @@ class GameScene:
         label_x = 20
         value_x = 220
 
-        spacing = 40  # Giảm khoảng cách giữa các dòng để tiết kiệm không gian
-        y = SCREEN_HEIGHT - spacing * 4 - 20  # Đảm bảo không vượt quá chiều cao
+        spacing = 40
+        y = SCREEN_HEIGHT - spacing * 4 - 20
 
         Renderer.render_text(screen, "Step:", label_x, y)
         Renderer.render_text(screen, str(GameManager.solution_rendering_step), value_x, y)
@@ -147,6 +147,7 @@ class GameScene:
             return
 
         GameManager.apply_algorithm(algo_name)
+        GameManager.solution_rendering_step = 0
 
     def pause_button_action(self):
         # Hide Algo Buttons

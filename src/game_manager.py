@@ -5,6 +5,14 @@ from src.map_loader import load_map
 from src.algorithms import Algorithms
 import time
 import re
+from multiprocessing import Process, Queue
+import pygame
+
+# === Thêm vào đầu file game_manager.py hoặc một file riêng ===
+
+def run_algorithm(algo_func, state, output_queue):
+    solution, n_explored_node = algo_func(state)
+    output_queue.put((solution, n_explored_node))
 
 # handle game logic and algorithms for solving Sokoban puzzles
 class GameManager:
@@ -13,14 +21,11 @@ class GameManager:
     current_action = None
 
     algorithms = {
-        # "DFS": lambda state: Algorithms.dfs(state),
-        "BFS": lambda state: Algorithms.bfs(state),
-        "UCS": lambda state: Algorithms.ucs(state),
-        "A-Star": lambda state: Algorithms.a_star(state),
-        # "IDDFS": lambda state: Algorithms.iddfs(state),
-        # "BI-DIRECTIONAL": lambda state: Algorithms.bi_directional(state),
-        # "BEAM": lambda state: Algorithms.beam(state),
-        # "IDA-Star": lambda state: Algorithms.ida_star(state),
+        "DFS": Algorithms.dfs,
+        "BFS": Algorithms.bfs,
+        "UCS": Algorithms.ucs,
+        "A-Star": Algorithms.a_star,
+        "IDDFS": Algorithms.iddfs,
     }
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0
@@ -72,23 +77,50 @@ class GameManager:
     def apply_algorithm(algo_name):
         if algo_name not in GameManager.available_algo_names:
             raise ValueError(f"Algorithm '{algo_name}' is not defined.")
+
         GameManager.current_state = GameManager.initial_state
         temp_state = GameManager.initial_state
 
+        # Block Handle Event
+        pygame.event.set_blocked(None)
+
+        output_queue = Queue()
+        process = Process(target=run_algorithm, args=(GameManager.algorithms[algo_name], temp_state, output_queue))
+
         start = time.time()
-        solution, n_explored_node = GameManager.algorithms[algo_name](temp_state)
+        process.start()
+        process.join(5)  # wait max 5 seconds
         end = time.time()
+
         solving_time = int((end - start) * 1000)
-        print(f"Algorithm '{algo_name}' took {solving_time} ms.")
-        if solution is None:
+
+        # Unblock Handle Event
+        pygame.event.set_allowed(None)
+
+        if process.is_alive():
+            process.terminate()
+            process.join()
+            print(f"Algorithm '{algo_name}' took {solving_time} ms.")
+            print("⏰ Timeout: No solution found in 5 seconds.")
             GameManager.actions = None
             GameManager.n_explored_nodes = 0
             GameManager.solving_time = solving_time
+            return
+
+        if not output_queue.empty():
+            solution, n_explored_node = output_queue.get()
+        else:
+            solution, n_explored_node = None, 0
+
+        print(f"Algorithm '{algo_name}' took {solving_time} ms.")
+        GameManager.n_explored_nodes = n_explored_node
+        GameManager.solving_time = solving_time
+
+        if solution is None:
             print("No solution found.")
+            GameManager.actions = None
         else:
             GameManager.actions = iter(solution)
-            GameManager.n_explored_nodes = n_explored_node
-            GameManager.solving_time = solving_time
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()
