@@ -46,3 +46,6 @@ ANIMATION_DELAY = 200  # milliseconds
 # Button
 BUTTON_WIDTH = 210
 BUTTON_HEIGHT = 40
+
+# Solving Time
+PROBLEM_SOLVING_TIME = 10 # seconds

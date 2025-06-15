@@ -81,9 +81,10 @@ class GameScene:
         buttons_are_visible(self.algo_buttons, False)
 
     def update(self):
+        GameManager.update_algorithm()  # thêm dòng này
+
         if GameManager.actions and not self.is_paused:
             GameManager.frame_counter += 1
-
             if GameManager.frame_counter >= GameManager.frames_per_action:
                 GameManager.frame_counter = 0
                 try:
@@ -95,6 +96,7 @@ class GameScene:
                     GameManager.actions = None
                     GameManager.current_action = None
 
+        # Cập nhật label hiển thị
         self.control_buttons["MAP"].set_text("MAP " + str(GameManager.selected_map_idx + 1))
         self.control_buttons["PAUSE"].set_text("CONTINUE" if self.is_paused else "PAUSE")
 
@@ -127,26 +129,22 @@ class GameScene:
         Renderer.render_text(screen, "Solving Time:", label_x, y + spacing * 3)
         Renderer.render_text(screen, str(GameManager.solving_time) + " ms", value_x, y + spacing * 3)
 
+        Renderer.render_text(screen, GameManager.status_message, 20, SCREEN_HEIGHT - 20)
+
     def start_button_action(self):
-        # Hide Algo Buttons
         self.display_algo_buttons = False
         buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
-
-        # Hide Map Input Box
         self.map_input_box.turn_off()
-
         self.is_paused = False
 
         algo_name = self.control_buttons["ALGORITHM"].get_text()
-
         if algo_name not in GameManager.algorithms:
-            import subprocess
             subprocess.Popen([
                 "cmd.exe", "/k", f"echo ERROR: Algorithm '{algo_name}' is not available. && pause"
             ])
             return
 
-        GameManager.apply_algorithm(algo_name)
+        GameManager.start_algorithm(algo_name)
         GameManager.solution_rendering_step = 0
 
     def pause_button_action(self):

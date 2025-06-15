@@ -1,4 +1,4 @@
-from config import MAP_DIR
+from config import MAP_DIR, PROBLEM_SOLVING_TIME
 import os
 from src.game_state import GameState
 from src.map_loader import load_map
@@ -41,6 +41,12 @@ class GameManager:
     current_state: GameState = None
     initial_state: GameState = None
 
+    status_message = ""
+
+    _algo_process = None
+    _algo_output_queue = None
+    _start_time = None
+
     @classmethod
     def load_map_files(cls):
         try:
@@ -74,53 +80,50 @@ class GameManager:
         GameManager.current_state = GameManager.initial_state
 
     @staticmethod
-    def apply_algorithm(algo_name):
+    def start_algorithm(algo_name):
         if algo_name not in GameManager.available_algo_names:
             raise ValueError(f"Algorithm '{algo_name}' is not defined.")
 
         GameManager.current_state = GameManager.initial_state
         temp_state = GameManager.initial_state
 
-        # Block Handle Event
-        pygame.event.set_blocked(None)
+        GameManager.status_message = "Solving..."
+        GameManager._start_time = time.time()
+        GameManager._algo_output_queue = Queue()
+        GameManager._algo_process = Process(
+            target=run_algorithm,
+            args=(GameManager.algorithms[algo_name], temp_state, GameManager._algo_output_queue)
+        )
+        GameManager._algo_process.start()
 
-        output_queue = Queue()
-        process = Process(target=run_algorithm, args=(GameManager.algorithms[algo_name], temp_state, output_queue))
-
-        start = time.time()
-        process.start()
-        process.join(5)  # wait max 5 seconds
-        end = time.time()
-
-        solving_time = int((end - start) * 1000)
-
-        # Unblock Handle Event
-        pygame.event.set_allowed(None)
-
-        if process.is_alive():
-            process.terminate()
-            process.join()
-            print(f"Algorithm '{algo_name}' took {solving_time} ms.")
-            print("⏰ Timeout: No solution found in 5 seconds.")
-            GameManager.actions = None
-            GameManager.n_explored_nodes = 0
-            GameManager.solving_time = solving_time
+    @staticmethod
+    def update_algorithm():
+        if GameManager._algo_process is None:
             return
 
-        if not output_queue.empty():
-            solution, n_explored_node = output_queue.get()
-        else:
-            solution, n_explored_node = None, 0
-
-        print(f"Algorithm '{algo_name}' took {solving_time} ms.")
-        GameManager.n_explored_nodes = n_explored_node
-        GameManager.solving_time = solving_time
-
-        if solution is None:
-            print("No solution found.")
+        current_time = time.time()
+        if current_time - GameManager._start_time >= PROBLEM_SOLVING_TIME:
+            if GameManager._algo_process.is_alive():
+                GameManager._algo_process.terminate()
+            GameManager.status_message = f"Timeout. No solution found after {PROBLEM_SOLVING_TIME} s."
             GameManager.actions = None
-        else:
-            GameManager.actions = iter(solution)
+            GameManager._algo_process = None
+            return
+
+        if not GameManager._algo_output_queue.empty():
+            solution, n_explored_node = GameManager._algo_output_queue.get()
+            solving_time = int((current_time - GameManager._start_time) * 1000)
+            GameManager.solving_time = solving_time
+            GameManager.n_explored_nodes = n_explored_node
+
+            if solution is None:
+                GameManager.status_message = "No solution found."
+                GameManager.actions = None
+            else:
+                GameManager.status_message = f""
+                GameManager.actions = iter(solution)
+
+            GameManager._algo_process = None
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()
