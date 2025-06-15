@@ -26,6 +26,7 @@ class GameManager:
         "UCS": Algorithms.ucs,
         "A-Star": Algorithms.a_star,
         "IDDFS": Algorithms.iddfs,
+        "IDA-Star": Algorithms.ida_star,
     }
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0

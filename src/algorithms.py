@@ -184,4 +184,51 @@ class Algorithms:
 
     @staticmethod
     def ida_star(initial_state: GameState):
-        pass
+        distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
+
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position in distances:
+                    h_value += distances[box_position]
+                else:
+                    h_value += float('inf')
+            return h_value
+
+        def backtrack(state: GameState, g: int, threshold: float, visited: set):
+            nonlocal n_explored_nodes, next_threshold
+
+            f = g + heuristic(state)
+            if f > threshold:
+                next_threshold = min(next_threshold, f)
+                return None
+
+            n_explored_nodes += 1
+            if state.is_win():
+                return state.get_path()
+
+            visited.add(state)
+
+            for action, action_cost in state.get_possible_actions():
+                next_state = state.apply_action(action, action_cost)
+                if next_state in visited:
+                    continue
+                result = backtrack(next_state, g + action_cost, threshold, visited)
+                if result is not None:
+                    return result
+
+            visited.remove(state)
+            return None
+
+        threshold = heuristic(initial_state)
+        n_explored_nodes = 0
+
+        while True:
+            visited = set()
+            next_threshold = float('inf')
+            result = backtrack(initial_state, 0, threshold, visited)
+            if result is not None:
+                return result, n_explored_nodes
+            if next_threshold == float('inf'):
+                return None, n_explored_nodes
+            threshold = next_threshold
