@@ -2,16 +2,20 @@ import pygame
 from src.game_manager import GameManager
 
 class MapInputBox:
-    def __init__(self, x, y, w, h, font, text=''):
+    def __init__(self, x, y, w, h, font, text='', placeholder='Enter map...'):
         self.rect = pygame.Rect(x, y, w, h)
         self.color_inactive = pygame.Color('gray')
         self.color_active = pygame.Color('dodgerblue2')
         self.color = self.color_inactive
         self.text = text
-        self.font = pygame.font.Font(None, 32)
-        self.txt_surface = font.render(text, True, self.color)
+        self.font = font
+        self.txt_surface = font.render(text, True, (0, 0, 0))
         self.is_active = True
         self.is_visible = False
+
+        # Placeholder-related
+        self.placeholder = placeholder
+        self.placeholder_color = pygame.Color('gray70')
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -25,32 +29,43 @@ class MapInputBox:
                     self.text = ""
                     self.txt_surface = self.font.render(self.text, True, (0, 0, 0))
 
-                    chosen_map = int(result)
-                    total_maps = GameManager.get_total_maps()
+                    try:
+                        chosen_map = int(result)
+                        total_maps = GameManager.get_total_maps()
 
-                    if chosen_map < 1:
-                        chosen_map = 1
-                    elif chosen_map > total_maps:
-                        chosen_map = total_maps
+                        if chosen_map < 1:
+                            chosen_map = 1
+                        elif chosen_map > total_maps:
+                            chosen_map = total_maps
 
-                    GameManager.choose_map(chosen_map - 1)
-                    GameManager.actions = None
-                    GameManager.n_explored_nodes = 0
-                    GameManager.solving_time = 0
-                    GameManager.solution_rendering_step = 0
+                        GameManager.choose_map(chosen_map - 1)
+                        GameManager.actions = None
+                        GameManager.n_explored_nodes = 0
+                        GameManager.solving_time = 0
+                        GameManager.solution_rendering_step = 0
+                    except ValueError:
+                        pass  # Ignore invalid (non-numeric) input
+
                     self.turn_off()
+
                 elif event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
                 elif event.unicode.isdigit():
                     self.text += event.unicode
+
                 self.txt_surface = self.font.render(self.text, True, (0, 0, 0))
 
         return None
 
     def render(self, screen):
         if self.is_visible:
-            text_rect = self.txt_surface.get_rect(center=self.rect.center)
-            screen.blit(self.txt_surface, text_rect)
+            if self.text:
+                text_surface = self.font.render(self.text, True, (0, 0, 0))
+            else:
+                text_surface = self.font.render(self.placeholder, True, self.placeholder_color)
+
+            text_rect = text_surface.get_rect(center=self.rect.center)
+            screen.blit(text_surface, text_rect)
             pygame.draw.rect(screen, self.color, self.rect, 2)
 
     def turn_off(self):

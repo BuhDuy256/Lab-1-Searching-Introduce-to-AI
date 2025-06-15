@@ -24,9 +24,10 @@ class GameManager:
         "DFS": Algorithms.dfs,
         "BFS": Algorithms.bfs,
         "UCS": Algorithms.ucs,
-        "A-Star": Algorithms.a_star,
+        "A*": Algorithms.a_star,
         "IDDFS": Algorithms.iddfs,
-        "IDA-Star": Algorithms.ida_star,
+        "BEAM": Algorithms.beam,
+        "IDA*": Algorithms.ida_star,
     }
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0
@@ -84,6 +85,11 @@ class GameManager:
     def start_algorithm(algo_name):
         if algo_name not in GameManager.available_algo_names:
             raise ValueError(f"Algorithm '{algo_name}' is not defined.")
+
+        GameManager.actions = None
+        GameManager.solution_rendering_step = 0
+        GameManager.n_explored_nodes = 0
+        GameManager.solving_time = 0
 
         GameManager.current_state = GameManager.initial_state
         temp_state = GameManager.initial_state

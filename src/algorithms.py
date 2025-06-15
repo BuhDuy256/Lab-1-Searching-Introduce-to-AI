@@ -179,8 +179,47 @@ class Algorithms:
        pass
 
     @staticmethod
-    def beam(initial_state: GameState, beam_width=5):
-        pass
+    def beam(initial_state: GameState):
+        beam_width = 5
+        from itertools import count
+
+        distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
+
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position in distances:
+                    h_value += distances[box_position]
+                else:
+                    h_value += float('inf')
+            return h_value
+
+        counter = count()
+        frontier = [(heuristic(initial_state), next(counter), initial_state)]
+        n_explored_nodes = 0
+        visited = set()
+
+        while frontier:
+            next_frontier = []
+
+            for _, _, current_state in frontier:
+                if current_state in visited:
+                    continue
+                visited.add(current_state)
+                n_explored_nodes += 1
+
+                if current_state.is_win():
+                    return current_state.get_path(), n_explored_nodes
+
+                for action, action_cost in current_state.get_possible_actions():
+                    next_state = current_state.apply_action(action, action_cost)
+                    if next_state in visited:
+                        continue
+                    next_frontier.append((heuristic(next_state), next(counter), next_state))
+
+            frontier = sorted(next_frontier)[:beam_width]
+
+        return None, n_explored_nodes
 
     @staticmethod
     def ida_star(initial_state: GameState):

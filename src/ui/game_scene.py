@@ -3,7 +3,7 @@ from config import *
 from src.ui.button import Button
 import pygame
 from  src.game_manager import GameManager
-from src.ui.input_box import MapInputBox
+from src.ui.map_input_box import MapInputBox
 import subprocess
 
 def buttons_are_visible(buttons: dict[str, Button], mode=True):
@@ -28,7 +28,7 @@ class GameScene:
         GameManager.choose_map(0)
 
     def create_GUI(self):
-        font = pygame.font.Font(None, 36)
+        font = pygame.font.Font(None, FONT_SIZE_MEDIUM)
         self.control_buttons = {}
 
         x = SCREEN_WIDTH - BUTTON_WIDTH - 20
@@ -145,7 +145,6 @@ class GameScene:
             return
 
         GameManager.start_algorithm(algo_name)
-        GameManager.solution_rendering_step = 0
 
     def pause_button_action(self):
         # Hide Algo Buttons
