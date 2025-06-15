@@ -26,8 +26,10 @@ class GameManager:
         "UCS": Algorithms.ucs,
         "A*": Algorithms.a_star,
         "IDDFS": Algorithms.iddfs,
+        # "BI-DIRECTIONAL": Algorithms.bi_directional,
         "BEAM": Algorithms.beam,
         "IDA*": Algorithms.ida_star,
+        "EHC": Algorithms.enforced_hill_climbing,
     }
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0

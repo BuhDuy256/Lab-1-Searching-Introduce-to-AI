@@ -174,9 +174,10 @@ class Algorithms:
 
         return None, n_explored_nodes
 
-    @staticmethod
-    def bi_directional(initial_state: GameState):
-       pass
+    # Very difficult to solve Sokuban Problem
+    # @staticmethod
+    # def bi_directional(initial_state: GameState):
+    #    pass
 
     @staticmethod
     def beam(initial_state: GameState):
@@ -271,3 +272,67 @@ class Algorithms:
             if next_threshold == float('inf'):
                 return None, n_explored_nodes
             threshold = next_threshold
+
+    @staticmethod
+    def enforced_hill_climbing(initial_state: GameState):
+        from collections import deque
+
+        distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
+
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position in distances:
+                    h_value += distances[box_position]
+                else:
+                    h_value += float('inf')
+            return h_value
+
+        def bfs_find_better_state(start_state, current_h):
+            visited = set()
+            queue = deque()
+            queue.append(start_state)
+            visited.add(start_state)
+
+            while queue:
+                state = queue.popleft()
+
+                for action, action_cost in state.get_possible_actions():
+                    next_state = state.apply_action(action, action_cost)
+                    if next_state in visited:
+                        continue
+
+                    h = heuristic(next_state)
+                    if h < current_h:
+                        return next_state
+                    queue.append(next_state)
+                    visited.add(next_state)
+
+            return None  # Không tìm thấy state tốt hơn
+
+        current_state = initial_state
+        n_explored_nodes = 0
+
+        while True:
+            current_h = heuristic(current_state)
+            n_explored_nodes += 1
+
+            if current_state.is_win():
+                return current_state.get_path(), n_explored_nodes
+
+            neighbors = []
+            for action, action_cost in current_state.get_possible_actions():
+                next_state = current_state.apply_action(action, action_cost)
+                neighbors.append((heuristic(next_state), next_state))
+
+            # Tìm neighbor tốt hơn hiện tại
+            better_neighbors = [s for h, s in neighbors if h < current_h]
+
+            if better_neighbors:
+                current_state = min(better_neighbors, key=heuristic)
+            else:
+                # Thực hiện BFS để tìm state tốt hơn
+                next_state = bfs_find_better_state(current_state, current_h)
+                if next_state is None:
+                    return None, n_explored_nodes  # Không còn state tốt hơn
+                current_state = next_state
