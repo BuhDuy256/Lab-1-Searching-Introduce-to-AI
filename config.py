@@ -1,7 +1,7 @@
 # Screen dimensions
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
-FPS = 50
+FPS = 200
 
 # State Rendering Area
 STATE_RENDERING_AREA_WIDTH = 896
@@ -41,7 +41,7 @@ FONT_SIZE_MEDIUM = 30
 FONT_SIZE_SMALL = 20
 
 # Animation speed for solution playback (delay in ms between solution_rendering_steps)
-ANIMATION_DELAY = 200  # milliseconds
+ANIMATION_DELAY = 100  # milliseconds
 
 # Button
 BUTTON_WIDTH = 210
