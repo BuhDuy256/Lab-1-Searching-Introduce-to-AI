@@ -21,10 +21,7 @@ class Algorithms:
             if current_state.is_win():
                 return current_state.get_path()
 
-            if current_state.is_deadlock():
-                return None
-
-            visited.add(current_state)
+            visited.add(current_state) 
 
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)

@@ -27,31 +27,28 @@ class GameState:
             return False
         return all(box_pos in self.goal_positions for box_pos in self.box_positions)
 
-    def is_deadlock(self):
-        for box_pos in self.box_positions:
-            if box_pos in self.goal_positions:
-                continue  # not a deadlock if it's already on a goal
+    def is_deadlock_at(self, box_pos):
+        if box_pos in self.goal_positions:
+            return False  # Trên goal thì không coi là deadlock
 
-            r, c = box_pos
+        r, c = box_pos
 
-            walls = {
-                'up': self.is_wall((r - 1, c)),
-                'down': self.is_wall((r + 1, c)),
-                'left': self.is_wall((r, c - 1)),
-                'right': self.is_wall((r, c + 1)),
-            }
+        walls = {
+            'up': self.is_wall((r - 1, c)),
+            'down': self.is_wall((r + 1, c)),
+            'left': self.is_wall((r, c - 1)),
+            'right': self.is_wall((r, c + 1)),
+        }
 
-            is_corner = (
-                    (walls['up'] and walls['left']) or
-                    (walls['up'] and walls['right']) or
-                    (walls['down'] and walls['left']) or
-                    (walls['down'] and walls['right'])
-            )
+        # Check xem box bị đẩy vào góc
+        is_corner = (
+                (walls['up'] and walls['left']) or
+                (walls['up'] and walls['right']) or
+                (walls['down'] and walls['left']) or
+                (walls['down'] and walls['right'])
+        )
 
-            if is_corner:
-                return True
-
-        return False
+        return is_corner
 
     def get_possible_actions(self):
         actions = []
@@ -64,31 +61,21 @@ class GameState:
             new_player_pos = (self.player_pos[0] + dr, self.player_pos[1] + dc)
             action_cost = 1
 
-            # Skip if the new position is a wall
             if self.is_wall(new_player_pos):
                 continue
 
-            # If the new position has a box
             if self.is_box(new_player_pos):
                 new_box_pos = (new_player_pos[0] + dr, new_player_pos[1] + dc)
-
-                # Cannot push the box into another box or wall
                 if self.is_wall(new_box_pos) or self.is_box(new_box_pos):
                     continue
 
-                action_cost += 1  # Pushing a box costs more
-
-                # Simulate the action to check for deadlock
-                next_state = self.apply_action(action_name, action_cost)
-
-                # If this action leads to a deadlock, skip it
-                if next_state.is_deadlock():
+                # Check deadlock chỉ với box vừa đẩy
+                if self.is_deadlock_at(new_box_pos):
                     continue
-            else:
-                # Simulate move (without pushing a box)
-                next_state = self.apply_action(action_name, action_cost)
 
-            # Add the valid action and its cost
+                action_cost += 1
+
+            # Nếu không có box hoặc hợp lệ thì thêm action
             actions.append((action_name, action_cost))
 
         return actions

@@ -7,6 +7,7 @@ import time
 import re
 from multiprocessing import Process, Queue
 import pygame
+from src.algorithm_generator import AlgorithmGenerator
 
 # === Thêm vào đầu file game_manager.py hoặc một file riêng ===
 
@@ -18,7 +19,6 @@ def run_algorithm(algo_func, state, output_queue):
 class GameManager:
     frame_counter = 0
     frames_per_action = 10
-    current_action = None
 
     algorithms = {
         "DFS": Algorithms.dfs,
@@ -31,6 +31,19 @@ class GameManager:
         "IDA*": Algorithms.ida_star,
         "EHC": Algorithms.enforced_hill_climbing,
     }
+
+    algorithm_generators = {
+        "DFS": AlgorithmGenerator.dfs_generator,
+        "BFS": AlgorithmGenerator.bfs_generator,
+        "UCS": AlgorithmGenerator.ucs_generator,
+        "A*": AlgorithmGenerator.a_star_generator,
+        "IDDFS": AlgorithmGenerator.iddfs_generator,
+        # "BI-DIRECTIONAL": AlgorithmGenerator.bi_directional_generator,  # nếu có
+        "BEAM": AlgorithmGenerator.beam_generator,
+        "IDA*": AlgorithmGenerator.ida_star_generator,
+        "EHC": AlgorithmGenerator.enforced_hill_climbing_generator,
+    }
+
     available_algo_names = list(algorithms.keys())
     selected_map_idx = 0
     selected_algo_idx = 0
@@ -50,6 +63,8 @@ class GameManager:
     _algo_process = None
     _algo_output_queue = None
     _start_time = None
+
+    search_generator = None
 
     @classmethod
     def load_map_files(cls):
@@ -133,6 +148,19 @@ class GameManager:
                 GameManager.actions = iter(solution)
 
             GameManager._algo_process = None
+
+    @staticmethod
+    def start_visualization(algo_name):
+        if algo_name not in GameManager.algorithm_generators:
+            raise ValueError(f"Algorithm '{algo_name}' does not support visualization.")
+
+        GameManager.search_generator = GameManager.algorithm_generators[algo_name](GameManager.initial_state)
+        GameManager.solution_rendering_step = 0
+        GameManager.n_explored_nodes = 0
+        GameManager.solving_time = 0
+        GameManager.status_message = "Visualizing..."
+        GameManager.current_state = GameManager.initial_state
+        GameManager.actions = None
 
 # Call this early in your main game setup to initialize maps
 GameManager.load_map_files()

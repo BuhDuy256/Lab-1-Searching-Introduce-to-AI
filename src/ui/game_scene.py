@@ -23,6 +23,9 @@ class GameScene:
 
         self.map_input_box: MapInputBox = None
 
+        self.is_solution_running = False
+        self.is_search_visualizing = False
+
         self.create_GUI()
 
         GameManager.choose_map(0)
@@ -50,9 +53,24 @@ class GameScene:
                               action=self.start_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
         self.control_buttons["START"] = start_button
 
-        pause_button = Button(x, start_button.y + start_button.height + spacing, BUTTON_WIDTH, BUTTON_HEIGHT,
-                              "PAUSE", font,
-                              action=self.pause_button_action, hover_color=(200, 200, 200), text_color=(0, 0, 0))
+        visualize_button = Button(
+            x, start_button.y + start_button.height + spacing,
+            BUTTON_WIDTH, BUTTON_HEIGHT,
+            "VISUALIZE", font,
+            action=self.visualize_button_action,
+            hover_color=(200, 200, 200),
+            text_color=(0, 0, 0)
+        )
+        self.control_buttons["VISUALIZE"] = visualize_button
+
+        pause_button = Button(
+            x, visualize_button.y + visualize_button.height + spacing,
+            BUTTON_WIDTH, BUTTON_HEIGHT,
+            "PAUSE", font,
+            action=self.pause_button_action,
+            hover_color=(200, 200, 200),
+            text_color=(0, 0, 0)
+        )
         self.control_buttons["PAUSE"] = pause_button
 
         algo_x = x - spacing - BUTTON_WIDTH
@@ -83,7 +101,24 @@ class GameScene:
     def update(self):
         GameManager.update_algorithm()  # thêm dòng này
 
-        if GameManager.actions and not self.is_paused:
+        if self.is_search_visualizing and not self.is_paused:
+            result = next(GameManager.search_generator)
+
+            if "done" in result and result["done"]:
+                self.is_search_visualizing = False
+
+                if result["solution"] is None:
+                    GameManager.status_message = "No solution found."
+                else:
+                    GameManager.status_message = "Solution found."
+                return
+
+            GameManager.current_state = result["current_state"]
+            GameManager.n_explored_nodes = result["n_explored"]
+            GameManager.solution_rendering_step = len(result["path_so_far"])
+
+        elif self.is_solution_running and not self.is_paused and GameManager.actions:
+
             GameManager.frame_counter += 1
             if GameManager.frame_counter >= GameManager.frames_per_action:
                 GameManager.frame_counter = 0
@@ -132,6 +167,9 @@ class GameScene:
         Renderer.render_text(screen, GameManager.status_message, 20, SCREEN_HEIGHT - 20)
 
     def start_button_action(self):
+        self.is_solution_running = True
+        self.is_search_visualizing = False
+
         self.display_algo_buttons = False
         buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
         self.map_input_box.turn_off()
@@ -145,6 +183,25 @@ class GameScene:
             return
 
         GameManager.start_algorithm(algo_name)
+
+    def visualize_button_action(self):
+        self.is_solution_running = False
+        self.is_search_visualizing = True
+
+        self.display_algo_buttons = False
+        buttons_are_visible(self.algo_buttons, self.display_algo_buttons)
+        self.map_input_box.turn_off()
+        self.is_paused = False
+
+        algo_name = self.control_buttons["ALGORITHM"].get_text()
+        if algo_name not in GameManager.algorithm_generators:
+            subprocess.Popen([
+                "cmd.exe", "/k", f"echo ERROR: Algorithm '{algo_name}' does not support visualization. && pause"
+            ])
+            self.is_search_visualizing = False
+            return
+
+        GameManager.start_visualization(algo_name)
 
     def pause_button_action(self):
         # Hide Algo Buttons
