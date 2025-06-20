@@ -17,8 +17,10 @@ def run_algorithm(algo_func, state, output_queue):
 
 # handle game logic and algorithms for solving Sokoban puzzles
 class GameManager:
-    frame_counter = 0
-    frames_per_action = 10
+    solution_frame_counter = 0
+    solution_frames_per_action = 20
+    visualize_frame_counter = 0
+    visualize_frames_per_action = 20
 
     algorithms = {
         "DFS": Algorithms.dfs,
