@@ -166,6 +166,43 @@ class GameScene:
 
         Renderer.render_text(screen, GameManager.status_message, 20, SCREEN_HEIGHT - 20)
 
+        # --- Render possible actions during visualization ---
+        if self.is_search_visualizing and GameManager.current_state:
+            # "+" shape order: UP, RIGHT, LEFT, DOWN
+            actions = ["UP", "RIGHT", "LEFT", "DOWN"]
+            possible_actions = set(a for a, _ in GameManager.current_state.get_possible_actions())
+            action_font = pygame.font.Font(None, 36)
+            action_box_w, action_box_h = 100, 40
+
+            # Dynamically position "+" shape to the right of the map
+            cols = GameManager.current_state.map_dims[1]
+            map_right = cols * TILE_SIZE
+            print(f"Map right edge at: {cols} pixels")
+            center_x = map_right + action_box_w + 60  # 60 pixels padding to the right of the map
+            center_y = SCREEN_HEIGHT // 2
+
+            positions = {
+                "UP":    (center_x, center_y - action_box_h - 10),
+                "DOWN":  (center_x, center_y + action_box_h + 10),
+                "LEFT":  (center_x - action_box_w - 10, center_y),
+                "RIGHT": (center_x + action_box_w + 10, center_y),
+            }
+
+            for action in actions:
+                pos_x, pos_y = positions[action]
+                rect = pygame.Rect(
+                    pos_x - action_box_w // 2,
+                    pos_y - action_box_h // 2,
+                    action_box_w,
+                    action_box_h
+                )
+                border_color = (0, 200, 0) if action in possible_actions else (180, 180, 180)
+                pygame.draw.rect(screen, (255, 255, 255), rect)
+                pygame.draw.rect(screen, border_color, rect, 3)
+                text_surface = action_font.render(action, True, (0, 0, 0))
+                text_rect = text_surface.get_rect(center=rect.center)
+                screen.blit(text_surface, text_rect)
+
     def solution_button_action(self):
         self.is_solution_running = True
         self.is_search_visualizing = False
