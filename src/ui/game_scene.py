@@ -100,7 +100,7 @@ class GameScene:
     def update(self):
         GameManager.update_algorithm()
 
-        if self.is_search_visualizing and not self.is_paused:
+        if self.is_search_visualizing and not self.is_paused and GameManager.search_generator:
             GameManager.visualize_frame_counter += 1
             if GameManager.visualize_frame_counter >= GameManager.visualize_frames_per_action:
                 GameManager.visualize_frame_counter = 0

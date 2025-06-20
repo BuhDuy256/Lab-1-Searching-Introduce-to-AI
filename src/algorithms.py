@@ -10,30 +10,27 @@ import sys
 class Algorithms:
     @staticmethod
     def dfs(initial_state: GameState):
-        def _dfs(current_state: GameState):
-            nonlocal n_explored_nodes
+        visited = set()
+        stack = [(initial_state, [])]  # (state, path_so_far)
+        n_explored_nodes = 0
+
+        while stack:
+            current_state, path = stack.pop()
 
             if current_state in visited:
-                return None
+                continue
 
+            visited.add(current_state)
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return current_state.get_path()
+                return path, n_explored_nodes
 
-            visited.add(current_state) 
-
-            for action, action_cost in current_state.get_possible_actions():
+            for action, action_cost in reversed(current_state.get_possible_actions()):
                 next_state = current_state.apply_action(action, action_cost)
-                result = _dfs(next_state)
-                if result is not None:
-                    return result
+                stack.append((next_state, path + [action]))
 
-            return None  # Không xóa khỏi visited
-
-        n_explored_nodes = 0
-        visited = set()
-        return _dfs(initial_state), n_explored_nodes
+        return None, n_explored_nodes
 
     @staticmethod
     def bfs(initial_state: GameState):

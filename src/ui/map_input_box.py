@@ -43,6 +43,9 @@ class MapInputBox:
                         GameManager.n_explored_nodes = 0
                         GameManager.solving_time = 0
                         GameManager.solution_rendering_step = 0
+                        GameManager.search_generator = None
+                        GameManager.solution_frame_counter = 0
+                        GameManager.visualize_frame_counter = 0
                     except ValueError:
                         pass  # Ignore invalid (non-numeric) input
 
