@@ -11,11 +11,11 @@ class Algorithms:
     @staticmethod
     def dfs(initial_state: GameState):
         visited = set()
-        stack = [(initial_state, [])]  # (state, path_so_far)
+        stack = [initial_state]
         n_explored_nodes = 0
 
         while stack:
-            current_state, path = stack.pop()
+            current_state = stack.pop()
 
             if current_state in visited:
                 continue
@@ -24,13 +24,13 @@ class Algorithms:
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return path, n_explored_nodes
+                return current_state.get_path(), n_explored_nodes
 
             for action, action_cost in reversed(current_state.get_possible_actions()):
                 next_state = current_state.apply_action(action, action_cost)
-                stack.append((next_state, path + [action]))
+                stack.append(next_state)
 
-        return None, n_explored_nodes
+        return None, 0
 
     @staticmethod
     def bfs(initial_state: GameState):
