@@ -177,7 +177,7 @@ class GameScene:
             # Dynamically position "+" shape to the right of the map
             cols = GameManager.current_state.map_dims[1]
             map_right = cols * TILE_SIZE
-            print(f"Map right edge at: {cols} pixels")
+            # print(f"Map right edge at: {cols} pixels")
             center_x = map_right + action_box_w + 60  # 60 pixels padding to the right of the map
             center_y = SCREEN_HEIGHT // 2
 

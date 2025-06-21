@@ -100,24 +100,17 @@ class Algorithms:
                 if box_position in distances:
                     h_value += distances[box_position]
                 else:
-                    float('inf')
-
+                    return float('inf')
             return h_value
 
-        start = time.time()
-
         frontier = []
-        heappush(frontier, (heuristic(initial_state) + initial_state.cost, next(counter), initial_state))
-        visited = set()
-        min_cost = {initial_state: initial_state.cost}
+        heappush(frontier, (heuristic(initial_state), next(counter), initial_state))
+        min_cost = {initial_state: 0}
         n_explored_nodes = 0
 
         while frontier:
             _, _, current_state = heappop(frontier)
-
-            if current_state in visited:
-                continue
-            visited.add(current_state)
+            g = min_cost[current_state]
             n_explored_nodes += 1
 
             if current_state.is_win():
@@ -125,48 +118,38 @@ class Algorithms:
 
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
-                total_cost = next_state.cost
+                new_cost = g + action_cost
 
-                if next_state not in min_cost or total_cost < min_cost[next_state]:
-                    min_cost[next_state] = total_cost
-                    estimated_cost = total_cost + heuristic(next_state)
-                    heappush(frontier, (estimated_cost, next(counter), next_state))
+                if new_cost < min_cost.get(next_state, float('inf')):
+                    min_cost[next_state] = new_cost
+                    f = new_cost + heuristic(next_state)
+                    heappush(frontier, (f, next(counter), next_state))
 
         return None, 0
 
     @staticmethod
-    def iddfs(initial_state: GameState):
-        def dls(current_state: GameState, depth: int, visited: set):
-            nonlocal n_explored_nodes
-            if current_state in visited:
-                return None
-            if depth < 0:
-                return None
-
-            n_explored_nodes += 1
-
-            if current_state.is_win():
-                return current_state.get_path()
-
-            visited.add(current_state)
-
-            for action, action_cost in current_state.get_possible_actions():
-                next_state = current_state.apply_action(action, action_cost)
-                result = dls(next_state, depth - 1, visited)
-                if result is not None:
-                    return result
-
-            visited.remove(current_state)
-            return None
-
-        max_depth = 50
+    def iddfs(initial_state: GameState, max_depth: int = 100):
         n_explored_nodes = 0
 
         for depth_limit in range(max_depth):
+            stack = [(initial_state, 0)]  # (state, depth)
             visited = set()
-            result = dls(initial_state, depth_limit, visited)
-            if result is not None:
-                return result, n_explored_nodes
+
+            while stack:
+                current_state, depth = stack.pop()
+
+                if current_state in visited:
+                    continue
+                visited.add(current_state)
+                n_explored_nodes += 1
+
+                if current_state.is_win():
+                    return current_state.get_path(), n_explored_nodes
+
+                if depth < depth_limit:
+                    for action, action_cost in reversed(current_state.get_possible_actions()):
+                        next_state = current_state.apply_action(action, action_cost)
+                        stack.append((next_state, depth + 1))
 
         return None, n_explored_nodes
 
@@ -225,48 +208,44 @@ class Algorithms:
         def heuristic(state: GameState):
             h_value = 0
             for box_position in state.box_positions:
-                if box_position in distances:
-                    h_value += distances[box_position]
-                else:
-                    h_value += float('inf')
+                if box_position not in distances:
+                    return float('inf')
+                h_value += distances[box_position]
             return h_value
-
-        def backtrack(state: GameState, g: int, threshold: float, visited: set):
-            nonlocal n_explored_nodes, next_threshold
-
-            f = g + heuristic(state)
-            if f > threshold:
-                next_threshold = min(next_threshold, f)
-                return None
-
-            n_explored_nodes += 1
-            if state.is_win():
-                return state.get_path()
-
-            visited.add(state)
-
-            for action, action_cost in state.get_possible_actions():
-                next_state = state.apply_action(action, action_cost)
-                if next_state in visited:
-                    continue
-                result = backtrack(next_state, g + action_cost, threshold, visited)
-                if result is not None:
-                    return result
-
-            visited.remove(state)
-            return None
 
         threshold = heuristic(initial_state)
         n_explored_nodes = 0
 
         while True:
+            stack = [(initial_state, 0)]  # (state, g)
             visited = set()
             next_threshold = float('inf')
-            result = backtrack(initial_state, 0, threshold, visited)
-            if result is not None:
-                return result, n_explored_nodes
+
+            while stack:
+                current_state, g = stack.pop()
+                f = g + heuristic(current_state)
+
+                if f > threshold:
+                    next_threshold = min(next_threshold, f)
+                    continue
+
+                if current_state in visited:
+                    continue
+                visited.add(current_state)
+                n_explored_nodes += 1
+
+                if current_state.is_win():
+                    return current_state.get_path(), n_explored_nodes
+
+                for action, action_cost in reversed(current_state.get_possible_actions()):
+                    next_state = current_state.apply_action(action, action_cost)
+                    if next_state in visited:
+                        continue
+                    stack.append((next_state, g + action_cost))
+
             if next_threshold == float('inf'):
                 return None, n_explored_nodes
+
             threshold = next_threshold
 
     @staticmethod
@@ -285,6 +264,7 @@ class Algorithms:
             return h_value
 
         def bfs_find_better_state(start_state, current_h):
+            nonlocal n_explored_nodes
             visited = set()
             queue = deque()
             queue.append(start_state)
@@ -292,6 +272,7 @@ class Algorithms:
 
             while queue:
                 state = queue.popleft()
+                n_explored_nodes += 1  # Tăng biến đếm khi duyệt node
 
                 for action, action_cost in state.get_possible_actions():
                     next_state = state.apply_action(action, action_cost)
@@ -321,14 +302,12 @@ class Algorithms:
                 next_state = current_state.apply_action(action, action_cost)
                 neighbors.append((heuristic(next_state), next_state))
 
-            # Tìm neighbor tốt hơn hiện tại
             better_neighbors = [s for h, s in neighbors if h < current_h]
 
             if better_neighbors:
                 current_state = min(better_neighbors, key=heuristic)
             else:
-                # Thực hiện BFS để tìm state tốt hơn
                 next_state = bfs_find_better_state(current_state, current_h)
                 if next_state is None:
-                    return None, n_explored_nodes  # Không còn state tốt hơn
+                    return None, n_explored_nodes
                 current_state = next_state

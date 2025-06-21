@@ -114,26 +114,34 @@ class AlgorithmGenerator:
 
     @staticmethod
     def a_star_generator(initial_state: GameState):
+        from itertools import count
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
+        counter = count()
 
         def heuristic(state: GameState):
-            return sum(distances.get(box, float('inf')) for box in state.box_positions)
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position in distances:
+                    h_value += distances[box_position]
+                else:
+                    return float('inf')
+            return h_value
 
-        counter = count()
         frontier = []
-        heappush(frontier, (heuristic(initial_state) + initial_state.cost, next(counter), initial_state, []))
+        heappush(frontier, (heuristic(initial_state), next(counter), initial_state, [], 0))  # (f, id, state, path, g)
+        min_cost = {initial_state: 0}
         visited = set()
-        min_cost = {initial_state: initial_state.cost}
         n_explored_nodes = 0
 
         while frontier:
-            _, _, current_state, path = heappop(frontier)
+            _, _, current_state, path, g = heappop(frontier)
 
             if current_state in visited:
                 continue
             visited.add(current_state)
             n_explored_nodes += 1
 
+            # Yield thông tin từng bước, bao gồm visited
             yield {
                 "current_state": current_state,
                 "n_explored": n_explored_nodes,
@@ -142,58 +150,66 @@ class AlgorithmGenerator:
             }
 
             if current_state.is_win():
-                yield {"solution": path, "done": True}
+                yield {
+                    "solution": path,
+                    "done": True
+                }
                 return
 
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
-                total_cost = next_state.cost
+                new_cost = g + action_cost
 
-                if next_state not in min_cost or total_cost < min_cost[next_state]:
-                    min_cost[next_state] = total_cost
-                    estimated_cost = total_cost + heuristic(next_state)
-                    heappush(frontier, (estimated_cost, next(counter), next_state, path + [(action, action_cost)]))
+                if new_cost < min_cost.get(next_state, float('inf')):
+                    min_cost[next_state] = new_cost
+                    f = new_cost + heuristic(next_state)
+                    heappush(frontier, (f, next(counter), next_state, path + [(action, action_cost)], new_cost))
 
-        yield {"solution": None, "done": True}
+        # Không tìm thấy lời giải
+        yield {
+            "solution": None,
+            "done": True
+        }
 
     @staticmethod
-    def iddfs_generator(initial_state: GameState):
-        def dls(current_state, depth, path, visited):
-            nonlocal n_explored_nodes
-
-            if current_state in visited or depth < 0:
-                return None
-
-            visited.add(current_state)
-            n_explored_nodes += 1
-
-            yield {
-                "current_state": current_state,
-                "n_explored": n_explored_nodes,
-                "visited": visited.copy(),
-                "path_so_far": path.copy()
-            }
-
-            if current_state.is_win():
-                yield {"solution": path, "done": True}
-                return
-
-            for action, action_cost in current_state.get_possible_actions():
-                next_state = current_state.apply_action(action, action_cost)
-                yield from dls(next_state, depth - 1, path + [(action, action_cost)], visited)
-
-            visited.remove(current_state)
-
-        max_depth = 50
+    def iddfs_generator(initial_state: GameState, max_depth: int = 50):
         n_explored_nodes = 0
 
         for depth_limit in range(max_depth):
+            stack = [(initial_state, 0, [])]  # (state, depth, path_so_far)
             visited = set()
-            result = yield from dls(initial_state, depth_limit, [], visited)
-            if result is not None:
-                return
 
-        yield {"solution": None, "done": True}
+            while stack:
+                current_state, depth, path = stack.pop()
+
+                if current_state in visited:
+                    continue
+                visited.add(current_state)
+                n_explored_nodes += 1
+
+                yield {
+                    "current_state": current_state,
+                    "n_explored": n_explored_nodes,
+                    "visited": visited,
+                    "path_so_far": path.copy()
+                }
+
+                if current_state.is_win():
+                    yield {
+                        "solution": path,
+                        "done": True
+                    }
+                    return
+
+                if depth < depth_limit:
+                    for action, action_cost in reversed(current_state.get_possible_actions()):
+                        next_state = current_state.apply_action(action, action_cost)
+                        stack.append((next_state, depth + 1, path + [(action, action_cost)]))
+
+        yield {
+            "solution": None,
+            "done": True
+        }
 
     @staticmethod
     def beam_generator(initial_state: GameState):
@@ -244,51 +260,64 @@ class AlgorithmGenerator:
     def ida_star_generator(initial_state: GameState):
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
-        def heuristic(state):
-            return sum(distances.get(box, float('inf')) for box in state.box_positions)
-
-        def backtrack(state, g, threshold, path, visited):
-            nonlocal n_explored_nodes, next_threshold
-
-            f = g + heuristic(state)
-            if f > threshold:
-                next_threshold = min(next_threshold, f)
-                return None
-
-            visited.add(state)
-            n_explored_nodes += 1
-
-            yield {
-                "current_state": state,
-                "n_explored": n_explored_nodes,
-                "visited": visited.copy(),
-                "path_so_far": path.copy()
-            }
-
-            if state.is_win():
-                yield {"solution": path, "done": True}
-                return
-
-            for action, action_cost in state.get_possible_actions():
-                next_state = state.apply_action(action, action_cost)
-                if next_state in visited:
-                    continue
-                yield from backtrack(next_state, g + action_cost, threshold, path + [(action, action_cost)], visited)
-
-            visited.remove(state)
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position not in distances:
+                    return float('inf')
+                h_value += distances[box_position]
+            return h_value
 
         threshold = heuristic(initial_state)
         n_explored_nodes = 0
 
         while True:
+            stack = [(initial_state, 0, [])]  # (state, g, path_so_far)
             visited = set()
             next_threshold = float('inf')
-            result = yield from backtrack(initial_state, 0, threshold, [], visited)
-            if result is not None:
-                return
+
+            while stack:
+                current_state, g, path = stack.pop()
+                f = g + heuristic(current_state)
+
+                if f > threshold:
+                    next_threshold = min(next_threshold, f)
+                    continue
+
+                if current_state in visited:
+                    continue
+                visited.add(current_state)
+                n_explored_nodes += 1
+
+                # Yield thông tin tại mỗi bước
+                yield {
+                    "current_state": current_state,
+                    "n_explored": n_explored_nodes,
+                    "visited": visited.copy(),
+                    "path_so_far": path.copy()
+                }
+
+                if current_state.is_win():
+                    yield {
+                        "solution": path,
+                        "done": True
+                    }
+                    return
+
+                for action, action_cost in reversed(current_state.get_possible_actions()):
+                    next_state = current_state.apply_action(action, action_cost)
+                    if next_state in visited:
+                        continue
+                    new_path = path + [(action, action_cost)]
+                    stack.append((next_state, g + action_cost, new_path))
+
             if next_threshold == float('inf'):
-                yield {"solution": None, "done": True}
+                yield {
+                    "solution": None,
+                    "done": True
+                }
                 return
+
             threshold = next_threshold
 
     @staticmethod
@@ -297,63 +326,82 @@ class AlgorithmGenerator:
 
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
-        def heuristic(state):
-            return sum(distances.get(box, float('inf')) for box in state.box_positions)
+        def heuristic(state: GameState):
+            h_value = 0
+            for box_position in state.box_positions:
+                if box_position not in distances:
+                    return float('inf')
+                h_value += distances[box_position]
+            return h_value
 
-        def bfs_find_better_state(start_state, current_h):
+        def bfs_find_better_state(start_state, current_h, visited_global, path):
+            nonlocal n_explored_nodes
             visited = set()
-            queue = deque([(start_state, [])])
+            queue = deque()
+            queue.append((start_state, []))  # (state, path_extension)
             visited.add(start_state)
 
             while queue:
-                state, path = queue.popleft()
+                state, ext_path = queue.popleft()
+                n_explored_nodes += 1  # ✅ Tăng node đã duyệt
 
                 for action, action_cost in state.get_possible_actions():
                     next_state = state.apply_action(action, action_cost)
                     if next_state in visited:
                         continue
                     h = heuristic(next_state)
-                    if h < current_h:
-                        return next_state, path + [(action, action_cost)]
-                    visited.add(next_state)
-                    queue.append((next_state, path + [(action, action_cost)]))
+                    new_path = ext_path + [(action, action_cost)]
 
-            return None, []
+                    if h < current_h:
+                        return next_state, new_path
+
+                    queue.append((next_state, new_path))
+                    visited.add(next_state)
+
+            return None, None
 
         current_state = initial_state
         path = []
+        visited = set()
         n_explored_nodes = 0
 
         while True:
             current_h = heuristic(current_state)
+            visited.add(current_state)
             n_explored_nodes += 1
 
             yield {
                 "current_state": current_state,
                 "n_explored": n_explored_nodes,
-                "visited": set(),  # EHC không dùng visited toàn cục
+                "visited": visited.copy(),
                 "path_so_far": path.copy()
             }
 
             if current_state.is_win():
-                yield {"solution": path, "done": True}
+                yield {
+                    "solution": path,
+                    "done": True
+                }
                 return
 
             neighbors = []
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
-                neighbors.append((heuristic(next_state), action, action_cost, next_state))
+                neighbors.append((heuristic(next_state), next_state, (action, action_cost)))
 
-            better_neighbors = [(h, a, c, s) for h, a, c, s in neighbors if h < current_h]
+            better_neighbors = [(h, s, a) for h, s, a in neighbors if h < current_h]
 
             if better_neighbors:
-                _, action, action_cost, best_state = min(better_neighbors, key=lambda x: x[0])
-                path.append((action, action_cost))
-                current_state = best_state
+                _, next_state, action = min(better_neighbors, key=lambda x: x[0])
+                current_state = next_state
+                path.append(action)
             else:
-                next_state, extra_path = bfs_find_better_state(current_state, current_h)
+                next_state, path_extension = bfs_find_better_state(current_state, current_h, visited, path)
                 if next_state is None:
-                    yield {"solution": None, "done": True}
+                    yield {
+                        "solution": None,
+                        "done": True
+                    }
                     return
                 current_state = next_state
-                path.extend(extra_path)
+                path += path_extension
