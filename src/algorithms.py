@@ -100,7 +100,7 @@ class Algorithms:
                 if box_position in distances:
                     h_value += distances[box_position]
                 else:
-                    return float('inf')
+                    h_value += float('inf')
             return h_value
 
         frontier = []
@@ -264,7 +264,7 @@ class Algorithms:
             return h_value
 
         def bfs_find_better_state(start_state, current_h):
-            nonlocal n_explored_nodes
+            nonlocal n_explored_nodes  # Cho phép cập nhật biến bên ngoài
             visited = set()
             queue = deque()
             queue.append(start_state)
