@@ -39,13 +39,3 @@ class Button:
     
     def update(self):
         pass
-
-    def render(self, screen):
-        if self.is_visible:
-            current_color = self.hover_color if self.is_hovered else self.color
-            pygame.draw.rect(screen, current_color, self.rect)
-            pygame.draw.rect(screen, BLACK, self.rect, 2) # Border
-
-            text_surface = self.font.render(self.text, True, self.text_color)
-            text_rect = text_surface.get_rect(center=self.rect.center)
-            screen.blit(text_surface, text_rect)

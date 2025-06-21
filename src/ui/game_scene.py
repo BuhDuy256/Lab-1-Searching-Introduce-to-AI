@@ -150,17 +150,21 @@ class GameScene:
 
     def render(self, screen):
         self.screen.fill(WHITE)
+        Renderer.render_game_state(self.screen)
+        
         for key, button in self.control_buttons.items():
             # Only render CANCEL button when visualizing or solving
             if key == "CANCEL":
                 if not (self.is_search_visualizing or self.is_solution_running):
                     continue
-            button.render(screen)
+            Renderer.render_button(screen, button)
+            # button.render(screen)
         for button in self.algo_buttons.values():
-            button.render(screen)
+            Renderer.render_button(screen, button)
+            # button.render(screen)
 
-        self.map_input_box.render(screen)
-        Renderer.render_game_state(self.screen)
+        # self.map_input_box.render(screen)
+        Renderer.render_map_input_box(screen, self.map_input_box)
 
         label_x = 20
         value_x = 220

@@ -60,17 +60,6 @@ class MapInputBox:
 
         return None
 
-    def render(self, screen):
-        if self.is_visible:
-            if self.text:
-                text_surface = self.font.render(self.text, True, (0, 0, 0))
-            else:
-                text_surface = self.font.render(self.placeholder, True, self.placeholder_color)
-
-            text_rect = text_surface.get_rect(center=self.rect.center)
-            screen.blit(text_surface, text_rect)
-            pygame.draw.rect(screen, self.color, self.rect, 2)
-
     def turn_off(self):
         self.is_active = False
         self.is_visible = False
