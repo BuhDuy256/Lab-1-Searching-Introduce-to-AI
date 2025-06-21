@@ -5,6 +5,7 @@ from queue import Queue
 from heapq import heappush, heappop
 import heapq
 from itertools import count
+from collections import deque
 import sys
 
 class Heuristics:
@@ -109,6 +110,8 @@ class Heuristics:
 class Algorithms:
     @staticmethod
     def dfs(initial_state: GameState):
+        start_time = time.time()
+
         visited = set()
         stack = [initial_state]
         n_explored_nodes = 0
@@ -123,16 +126,23 @@ class Algorithms:
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return current_state.get_path(), n_explored_nodes
+                solving_time = time.time() - start_time
+                return current_state.get_path(), n_explored_nodes, solving_time
 
             for action, action_cost in reversed(current_state.get_possible_actions()):
                 next_state = current_state.apply_action(action, action_cost)
                 stack.append(next_state)
 
-        return None, 0
+        solving_time = time.time() - start_time
+        return None, n_explored_nodes, solving_time
+
+    import time
+    from queue import Queue
 
     @staticmethod
     def bfs(initial_state: GameState):
+        start_time = time.time()
+
         q = Queue()
         visited = set()
         n_explored_nodes = 0
@@ -145,7 +155,8 @@ class Algorithms:
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return current_state.get_path(), n_explored_nodes
+                solving_time = time.time() - start_time
+                return current_state.get_path(), n_explored_nodes, solving_time
 
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
@@ -156,11 +167,18 @@ class Algorithms:
                 q.put(next_state)
                 visited.add(next_state)
 
-        return None, 0
+        solving_time = time.time() - start_time
+        return None, n_explored_nodes, solving_time
+
+    import time
+    import heapq
+    from itertools import count
 
     @staticmethod
     def ucs(initial_state: GameState):
-        counter = count() # Handle case if 2 state have the same cost, it will compare id next
+        start_time = time.time()
+
+        counter = count()  # Handle case if 2 states have the same cost, it will compare id next
         frontier = []
         heapq.heappush(frontier, (initial_state.cost, next(counter), initial_state))
         visited = set()
@@ -176,7 +194,8 @@ class Algorithms:
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return current_state.get_path(), n_explored_nodes
+                solving_time = time.time() - start_time
+                return current_state.get_path(), n_explored_nodes, solving_time
 
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
@@ -186,10 +205,17 @@ class Algorithms:
                     min_cost[next_state] = total_cost
                     heapq.heappush(frontier, (total_cost, next(counter), next_state))
 
-        return None, 0
+        solving_time = time.time() - start_time
+        return None, n_explored_nodes, solving_time
+
+    import time
+    from heapq import heappush, heappop
+    from itertools import count
 
     @staticmethod
     def a_star(initial_state: GameState):
+        start_time = time.time()
+
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
         counter = count()
 
@@ -204,7 +230,8 @@ class Algorithms:
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return current_state.get_path(), n_explored_nodes
+                solving_time = time.time() - start_time
+                return current_state.get_path(), n_explored_nodes, solving_time
 
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
@@ -215,10 +242,14 @@ class Algorithms:
                     f = new_cost + Heuristics.heuristic1(next_state, distances)
                     heappush(frontier, (f, next(counter), next_state))
 
-        return None, 0
+        solving_time = time.time() - start_time
+        return None, n_explored_nodes, solving_time
+
+    import time
 
     @staticmethod
     def iddfs(initial_state: GameState, max_depth: int = 100):
+        start_time = time.time()
         n_explored_nodes = 0
 
         for depth_limit in range(max_depth):
@@ -234,14 +265,16 @@ class Algorithms:
                 n_explored_nodes += 1
 
                 if current_state.is_win():
-                    return current_state.get_path(), n_explored_nodes
+                    solving_time = time.time() - start_time
+                    return current_state.get_path(), n_explored_nodes, solving_time
 
                 if depth < depth_limit:
                     for action, action_cost in reversed(current_state.get_possible_actions()):
                         next_state = current_state.apply_action(action, action_cost)
                         stack.append((next_state, depth + 1))
 
-        return None, n_explored_nodes
+        solving_time = time.time() - start_time
+        return None, n_explored_nodes, solving_time
 
     # Very difficult to solve Sokuban Problem
     # @staticmethod
@@ -250,9 +283,9 @@ class Algorithms:
 
     @staticmethod
     def beam(initial_state: GameState):
-        beam_width = 100
-        from itertools import count
+        start_time = time.time()
 
+        beam_width = 100
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
         counter = count()
@@ -270,20 +303,30 @@ class Algorithms:
                 n_explored_nodes += 1
 
                 if current_state.is_win():
-                    return current_state.get_path(), n_explored_nodes
+                    solving_time = time.time() - start_time
+                    return current_state.get_path(), n_explored_nodes, solving_time
 
                 for action, action_cost in current_state.get_possible_actions():
                     next_state = current_state.apply_action(action, action_cost)
                     if next_state in visited:
                         continue
-                    next_frontier.append((Heuristics.heuristic1(next_state, distances), next(counter), next_state))
+                    next_frontier.append((
+                        Heuristics.heuristic1(next_state, distances),
+                        next(counter),
+                        next_state
+                    ))
 
             frontier = sorted(next_frontier)[:beam_width]
 
-        return None, n_explored_nodes
+        solving_time = time.time() - start_time
+        return None, n_explored_nodes, solving_time
+
+    import time
 
     @staticmethod
     def ida_star(initial_state: GameState):
+        start_time = time.time()
+
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
         threshold = Heuristics.heuristic1(initial_state, distances)
@@ -308,7 +351,8 @@ class Algorithms:
                 n_explored_nodes += 1
 
                 if current_state.is_win():
-                    return current_state.get_path(), n_explored_nodes
+                    solving_time = time.time() - start_time
+                    return current_state.get_path(), n_explored_nodes, solving_time
 
                 for action, action_cost in reversed(current_state.get_possible_actions()):
                     next_state = current_state.apply_action(action, action_cost)
@@ -317,13 +361,14 @@ class Algorithms:
                     stack.append((next_state, g + action_cost))
 
             if next_threshold == float('inf'):
-                return None, n_explored_nodes
+                solving_time = time.time() - start_time
+                return None, n_explored_nodes, solving_time
 
             threshold = next_threshold
 
     @staticmethod
     def enforced_hill_climbing(initial_state: GameState):
-        from collections import deque
+        start_time = time.time()
 
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
@@ -359,21 +404,21 @@ class Algorithms:
             n_explored_nodes += 1
 
             if current_state.is_win():
-                return current_state.get_path(), n_explored_nodes
+                solving_time = time.time() - start_time
+                return current_state.get_path(), n_explored_nodes, solving_time
 
             neighbors = []
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
-                neighbors.append(
-                    (Heuristics.heuristic1(next_state, distances), next_state))
+                neighbors.append((Heuristics.heuristic1(next_state, distances), next_state))
 
             better_neighbors = [s for h, s in neighbors if h < current_h]
 
             if better_neighbors:
-                current_state = min(better_neighbors,
-                                    key=lambda s: Heuristics.heuristic1(s, distances))
+                current_state = min(better_neighbors, key=lambda s: Heuristics.heuristic1(s, distances))
             else:
                 next_state = bfs_find_better_state(current_state, current_h)
                 if next_state is None:
-                    return None, n_explored_nodes
+                    solving_time = time.time() - start_time
+                    return None, n_explored_nodes, solving_time
                 current_state = next_state

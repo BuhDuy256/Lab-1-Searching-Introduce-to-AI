@@ -12,8 +12,8 @@ from src.algorithm_generator import AlgorithmGenerator
 # === Thêm vào đầu file game_manager.py hoặc một file riêng ===
 
 def run_algorithm(algo_func, state, output_queue):
-    solution, n_explored_node = algo_func(state)
-    output_queue.put((solution, n_explored_node))
+    solution, n_explored_node, solving_time = algo_func(state)
+    output_queue.put((solution, n_explored_node, solving_time))
 
 # handle game logic and algorithms for solving Sokoban puzzles
 class GameManager:
@@ -137,8 +137,8 @@ class GameManager:
             return
 
         if not GameManager._algo_output_queue.empty():
-            solution, n_explored_node = GameManager._algo_output_queue.get()
-            solving_time = int((current_time - GameManager._start_time) * 1000)
+            solution, n_explored_node, solving_time = GameManager._algo_output_queue.get()
+            # solving_time = int((current_time - GameManager._start_time) * 1000)
             GameManager.solving_time = solving_time
             GameManager.n_explored_nodes = n_explored_node
 
