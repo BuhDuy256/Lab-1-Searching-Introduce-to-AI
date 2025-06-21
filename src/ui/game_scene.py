@@ -72,6 +72,17 @@ class GameScene:
         )
         self.control_buttons["PAUSE"] = pause_button
 
+        # Add CANCEL button below PAUSE
+        cancel_button = Button(
+            x, pause_button.y + pause_button.height + spacing,
+            BUTTON_WIDTH, BUTTON_HEIGHT,
+            "CANCEL", font,
+            action=self.cancel_button_action,
+            hover_color=(200, 200, 200),
+            text_color=(0, 0, 0)
+        )
+        self.control_buttons["CANCEL"] = cancel_button
+
         algo_x = x - spacing - BUTTON_WIDTH
         algo_y = algorithm_button.y
 
@@ -139,7 +150,11 @@ class GameScene:
 
     def render(self, screen):
         self.screen.fill(WHITE)
-        for button in self.control_buttons.values():
+        for key, button in self.control_buttons.items():
+            # Only render CANCEL button when visualizing or solving
+            if key == "CANCEL":
+                if not (self.is_search_visualizing or self.is_solution_running):
+                    continue
             button.render(screen)
         for button in self.algo_buttons.values():
             button.render(screen)
@@ -258,3 +273,16 @@ class GameScene:
         self.control_buttons["ALGORITHM"].set_text(name)
         self.display_algo_buttons = False
         buttons_are_visible(self.algo_buttons, False)
+
+    def cancel_button_action(self):
+        # Cancel solving/visualizing and reset to initial state
+        self.is_solution_running = False
+        self.is_search_visualizing = False
+        self.is_paused = False
+        GameManager.status_message = "Cancelled."
+        GameManager.current_state = GameManager.initial_state
+        GameManager.solution_rendering_step = 0
+        GameManager.n_explored_nodes = 0
+        GameManager.solving_time = 0
+        GameManager.actions = None
+        GameManager.search_generator = None
