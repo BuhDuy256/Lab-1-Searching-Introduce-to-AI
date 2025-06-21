@@ -7,6 +7,105 @@ import heapq
 from itertools import count
 import sys
 
+class Heuristics:
+    @staticmethod
+    def heuristic1(state: GameState, distances):
+        h_value = 0
+        for box_position in state.box_positions:
+            if box_position in distances:
+                h_value += distances[box_position]
+            else:
+                h_value += float('inf')
+        return h_value
+
+    @staticmethod
+    def heuristic2(state, distances):
+        h_value = 0
+
+        # --- Part 1: Sum of box-to-goal distances (precomputed distances dict) ---
+        for box_pos in state.box_positions:
+            if box_pos in distances:
+                h_value += distances[box_pos]
+            else:
+                h_value += float('inf')  # Penalize unreachable positions
+
+        # --- Part 2: Sum of distances from player to all boxes (greedy + early stop) ---
+        remaining_boxes = set(state.box_positions)
+        visited = set()
+        heap = []
+        heappush(heap, (0, state.player_pos))  # (distance, position)
+
+        while heap and remaining_boxes:
+            dist, pos = heappop(heap)
+            if pos in visited:
+                continue
+            visited.add(pos)
+
+            if pos in remaining_boxes:
+                h_value += dist  # Player to box distance
+                remaining_boxes.remove(pos)
+                if not remaining_boxes:
+                    break  # Stop early once all boxes reached
+
+            for dr, dc in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
+                nr, nc = pos[0] + dr, pos[1] + dc
+                next_pos = (nr, nc)
+                if next_pos not in visited and not state.is_wall(next_pos):
+                    heappush(heap, (dist + 1, next_pos))
+
+        return h_value
+
+    @staticmethod
+    def heuristic3(state: GameState, distances, player_weight=0.5):
+        h_value = 0
+
+        # --- Check deadlocks ---
+        for box in state.box_positions:
+            if state.is_deadlock_at(box) and box not in state.goal_positions:
+                return float('inf')
+
+        # --- Part 1: Greedy box-goal matching (no goal used twice) ---
+        unmatched_goals = set(state.goal_positions)
+        box_goal_costs = []
+
+        for box in state.box_positions:
+            if box not in distances:
+                return float('inf')  # Unreachable box
+
+            goal_dists = [(distances[goal], goal) for goal in unmatched_goals if goal in distances]
+            if not goal_dists:
+                return float('inf')  # No reachable goal left
+
+            dist, matched_goal = min(goal_dists)
+            h_value += dist
+            unmatched_goals.remove(matched_goal)
+
+        # --- Part 2 (optional): Player to nearest box (weighted) ---
+        remaining_boxes = set(state.box_positions)
+        visited = set()
+        heap = []
+        heappush(heap, (0, state.player_pos))
+
+        while heap and remaining_boxes:
+            dist, pos = heappop(heap)
+            if pos in visited:
+                continue
+            visited.add(pos)
+
+            if pos in remaining_boxes:
+                h_value += dist * player_weight
+                remaining_boxes.remove(pos)
+                if not remaining_boxes:
+                    break
+
+            for dr, dc in [(-1,0), (1,0), (0,-1), (0,1)]:
+                nr, nc = pos[0] + dr, pos[1] + dc
+                next_pos = (nr, nc)
+                if next_pos not in visited and not state.is_wall(next_pos):
+                    heappush(heap, (dist + 1, next_pos))
+
+        return h_value
+
 class Algorithms:
     @staticmethod
     def dfs(initial_state: GameState):
@@ -94,17 +193,8 @@ class Algorithms:
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
         counter = count()
 
-        def heuristic(state: GameState):
-            h_value = 0
-            for box_position in state.box_positions:
-                if box_position in distances:
-                    h_value += distances[box_position]
-                else:
-                    h_value += float('inf')
-            return h_value
-
         frontier = []
-        heappush(frontier, (heuristic(initial_state), next(counter), initial_state))
+        heappush(frontier, (Heuristics.heuristic1(initial_state, distances), next(counter), initial_state))
         min_cost = {initial_state: 0}
         n_explored_nodes = 0
 
@@ -122,7 +212,7 @@ class Algorithms:
 
                 if new_cost < min_cost.get(next_state, float('inf')):
                     min_cost[next_state] = new_cost
-                    f = new_cost + heuristic(next_state)
+                    f = new_cost + Heuristics.heuristic1(next_state, distances)
                     heappush(frontier, (f, next(counter), next_state))
 
         return None, 0
@@ -160,22 +250,13 @@ class Algorithms:
 
     @staticmethod
     def beam(initial_state: GameState):
-        beam_width = 5
+        beam_width = 100
         from itertools import count
 
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
-        def heuristic(state: GameState):
-            h_value = 0
-            for box_position in state.box_positions:
-                if box_position in distances:
-                    h_value += distances[box_position]
-                else:
-                    h_value += float('inf')
-            return h_value
-
         counter = count()
-        frontier = [(heuristic(initial_state), next(counter), initial_state)]
+        frontier = [(Heuristics.heuristic1(initial_state, distances), next(counter), initial_state)]
         n_explored_nodes = 0
         visited = set()
 
@@ -195,7 +276,7 @@ class Algorithms:
                     next_state = current_state.apply_action(action, action_cost)
                     if next_state in visited:
                         continue
-                    next_frontier.append((heuristic(next_state), next(counter), next_state))
+                    next_frontier.append((Heuristics.heuristic1(next_state, distances), next(counter), next_state))
 
             frontier = sorted(next_frontier)[:beam_width]
 
@@ -205,15 +286,7 @@ class Algorithms:
     def ida_star(initial_state: GameState):
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
-        def heuristic(state: GameState):
-            h_value = 0
-            for box_position in state.box_positions:
-                if box_position not in distances:
-                    return float('inf')
-                h_value += distances[box_position]
-            return h_value
-
-        threshold = heuristic(initial_state)
+        threshold = Heuristics.heuristic1(initial_state, distances)
         n_explored_nodes = 0
 
         while True:
@@ -223,7 +296,7 @@ class Algorithms:
 
             while stack:
                 current_state, g = stack.pop()
-                f = g + heuristic(current_state)
+                f = g + Heuristics.heuristic1(current_state, distances)
 
                 if f > threshold:
                     next_threshold = min(next_threshold, f)
@@ -254,17 +327,8 @@ class Algorithms:
 
         distances = initial_state.get_mahattan_distances_from_goal_to_all_nodes()
 
-        def heuristic(state: GameState):
-            h_value = 0
-            for box_position in state.box_positions:
-                if box_position in distances:
-                    h_value += distances[box_position]
-                else:
-                    h_value += float('inf')
-            return h_value
-
         def bfs_find_better_state(start_state, current_h):
-            nonlocal n_explored_nodes  # Cho phép cập nhật biến bên ngoài
+            nonlocal n_explored_nodes
             visited = set()
             queue = deque()
             queue.append(start_state)
@@ -272,26 +336,26 @@ class Algorithms:
 
             while queue:
                 state = queue.popleft()
-                n_explored_nodes += 1  # Tăng biến đếm khi duyệt node
+                n_explored_nodes += 1
 
                 for action, action_cost in state.get_possible_actions():
                     next_state = state.apply_action(action, action_cost)
                     if next_state in visited:
                         continue
 
-                    h = heuristic(next_state)
+                    h = Heuristics.heuristic1(next_state, distances)
                     if h < current_h:
                         return next_state
                     queue.append(next_state)
                     visited.add(next_state)
 
-            return None  # Không tìm thấy state tốt hơn
+            return None
 
         current_state = initial_state
         n_explored_nodes = 0
 
         while True:
-            current_h = heuristic(current_state)
+            current_h = Heuristics.heuristic1(current_state, distances)
             n_explored_nodes += 1
 
             if current_state.is_win():
@@ -300,12 +364,14 @@ class Algorithms:
             neighbors = []
             for action, action_cost in current_state.get_possible_actions():
                 next_state = current_state.apply_action(action, action_cost)
-                neighbors.append((heuristic(next_state), next_state))
+                neighbors.append(
+                    (Heuristics.heuristic1(next_state, distances), next_state))
 
             better_neighbors = [s for h, s in neighbors if h < current_h]
 
             if better_neighbors:
-                current_state = min(better_neighbors, key=heuristic)
+                current_state = min(better_neighbors,
+                                    key=lambda s: Heuristics.heuristic1(s, distances))
             else:
                 next_state = bfs_find_better_state(current_state, current_h)
                 if next_state is None:
