@@ -138,7 +138,7 @@ class GameManager:
 
         if not GameManager._algo_output_queue.empty():
             solution, n_explored_node, solving_time = GameManager._algo_output_queue.get()
-            # solving_time = int((current_time - GameManager._start_time) * 1000)
+            solving_time = int((current_time - GameManager._start_time) * 1000) # Comment this line if you want to use the solving_time from the algorithm
             GameManager.solving_time = solving_time
             GameManager.n_explored_nodes = n_explored_node
 
