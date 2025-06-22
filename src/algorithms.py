@@ -136,9 +136,6 @@ class Algorithms:
         solving_time = time.time() - start_time
         return None, n_explored_nodes, solving_time
 
-    import time
-    from queue import Queue
-
     @staticmethod
     def bfs(initial_state: GameState):
         start_time = time.time()
@@ -169,10 +166,6 @@ class Algorithms:
 
         solving_time = time.time() - start_time
         return None, n_explored_nodes, solving_time
-
-    import time
-    import heapq
-    from itertools import count
 
     @staticmethod
     def ucs(initial_state: GameState):
@@ -207,10 +200,6 @@ class Algorithms:
 
         solving_time = time.time() - start_time
         return None, n_explored_nodes, solving_time
-
-    import time
-    from heapq import heappush, heappop
-    from itertools import count
 
     @staticmethod
     def a_star(initial_state: GameState):
@@ -320,8 +309,6 @@ class Algorithms:
 
         solving_time = time.time() - start_time
         return None, n_explored_nodes, solving_time
-
-    import time
 
     @staticmethod
     def ida_star(initial_state: GameState):
