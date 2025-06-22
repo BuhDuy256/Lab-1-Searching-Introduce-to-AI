@@ -250,7 +250,7 @@ class GameScene:
 
         algo_name = self.control_buttons["ALGORITHM"].get_text()
         if algo_name not in GameManager.algorithm_generators:
-            GameManager.status_message = f"Algorithm '{algo_name}' does not support visualization."
+            GameManager.status_message = f"ERROR: Algorithm '{algo_name}' is not available."
             self.is_search_visualizing = False
             return
 
